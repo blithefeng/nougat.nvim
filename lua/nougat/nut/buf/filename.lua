@@ -8,7 +8,10 @@ local augroup = vim.api.nvim_create_augroup("nougat.nut.buf.filename", { clear =
 vim.api.nvim_create_autocmd("BufFilePost", {
   group = augroup,
   callback = function(info)
-    cache_store[info.buf].v = nil
+    local cache = cache_store[info.buf]
+    for key in pairs(cache) do
+      cache[key] = nil
+    end
   end,
 })
 
