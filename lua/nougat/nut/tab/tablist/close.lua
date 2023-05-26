@@ -22,7 +22,7 @@ function mod.create(opts)
     suffix = opts.suffix,
     sep_right = opts.sep_right,
     config = vim.tbl_deep_extend("force", {
-      text = "",
+      text = "X",
     }, opts.config or {}),
     on_click = opts.on_click,
     context = opts.context,
