@@ -102,7 +102,19 @@ local function get_combined_content(item, ctx)
   return cache.cc
 end
 
-local mod = {}
+local hidden = {}
+
+local function hidden_if_zero(item, ctx)
+  return item.cache[ctx.bufnr][item:config(ctx).severity] == 0
+end
+
+function hidden.if_zero()
+  return hidden_if_zero
+end
+
+local mod = {
+  hidden = hidden,
+}
 
 function mod.create(opts)
   local config
