@@ -258,6 +258,8 @@ This is used to get the value from cache store for the current context.
 
 If cache store is created by `NougatItem`, this will be used as initial value for the cache.
 
+If `initial_value` is given, `NougatItem` will not automatically cache the item content.
+
 #### `cache.scope`
 
 **Type:** `'buf'|'win'|'tab'`

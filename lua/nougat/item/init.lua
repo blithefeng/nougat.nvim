@@ -129,7 +129,7 @@ local function init(class, config)
     end
     assert(type(self.cache) == "function", "one of cache.get or cache.scope is required")
 
-    self._cache_type = cache.store and "manual" or "auto"
+    self._cache_type = (cache.store or cache.initial_value) and "manual" or "auto"
     if self._cache_type == "auto" and type(self.content) == "function" then
       self._get_content = self.content
       self.content = ic.auto_cached_content
