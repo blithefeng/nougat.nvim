@@ -41,21 +41,28 @@ local function on_init_breakpoints(item, breakpoints)
   end
 end
 
-local tabs_metatable = {
-  __index = function(tabs, idx)
-    local ctx, tab_ctx = tabs.ctx, tabs.tab_ctx
+local function get_next_tab_item(tabs)
+  local idx = tabs._idx + 1
 
-    local tabid = tabs.tabids[idx]
-    tab_ctx.tabid, tab_ctx.tabnr = tabid, vim.api.nvim_tabpage_get_number(tabid)
-    tab_ctx.winid = vim.api.nvim_tabpage_get_win(tabid)
-    tab_ctx.bufnr = vim.api.nvim_win_get_buf(tab_ctx.winid)
-    tab_ctx.is_focused = ctx.tabid == tabid
+  local tabid = tabs.tabids[idx]
+  if not tabid then
+    tabs._idx = 0
+    return nil, nil
+  end
 
-    ctx.tab = tab_ctx
+  tabs._idx = idx
 
-    return tabs.items[idx]
-  end,
-}
+  local ctx, tab_ctx = tabs.ctx, tabs.tab_ctx
+
+  tab_ctx.tabid, tab_ctx.tabnr = tabid, vim.api.nvim_tabpage_get_number(tabid)
+  tab_ctx.winid = vim.api.nvim_tabpage_get_win(tabid)
+  tab_ctx.bufnr = vim.api.nvim_win_get_buf(tab_ctx.winid)
+  tab_ctx.is_focused = ctx.tabid == tabid
+
+  ctx.tab = tab_ctx
+
+  return tabs.items[idx], idx
+end
 
 local default_tab_hl = {
   active = u.get_hl("TabLineSel"),
@@ -93,6 +100,7 @@ function mod.create(opts)
     tab.prefix = type(tab.prefix) == "string" and { tab.prefix } or tab.prefix
     tab.suffix = type(tab.suffix) == "string" and { tab.suffix } or tab.suffix
     tab.sep_right = iu.normalize_sep(1, tab.sep_right)
+    tab.content.next = u.get_next_list_item
   end
 
   local item = Item({
@@ -109,14 +117,17 @@ function mod.create(opts)
   item.active_tab = active_tab
   item.inactive_tab = inactive_tab
 
-  item.tabs = setmetatable({
+  item.tabs = {
     ctx = nil,
     tab_ctx = {},
 
+    _idx = 0,
     len = 0,
     items = {},
     tabids = {},
-  }, tabs_metatable)
+
+    next = get_next_tab_item,
+  }
 
   return item
 end

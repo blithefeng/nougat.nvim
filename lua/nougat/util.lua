@@ -43,6 +43,13 @@ function mod.create_id_generator()
   end
 end
 
+local function get_next_list_item(items)
+  local idx = (items._idx or 0) + 1
+  local item = items[idx]
+  items._idx = item and idx or 0
+  return item, idx
+end
+
 local augroup = vim.api.nvim_create_augroup("nougat.on_event", { clear = true })
 
 ---@type table<string, (fun(info:table):nil)[]>
@@ -317,9 +324,8 @@ local function prepare_parts(items, ctx, item_fallback_hl)
   local hls, parts = ctx.hls, ctx.parts
   local hl_idx, part_idx
 
-  for item_idx = 1, (items.len or #items) do
-    local item = items[item_idx]
-
+  local item = items:next()
+  while item do
     hl_idx, part_idx = hls.len, parts.len
 
     if item.prepare then
@@ -469,6 +475,8 @@ local function prepare_parts(items, ctx, item_fallback_hl)
 
     hls.len = hl_idx
     parts.len = part_idx
+
+    item = items:next()
   end
 end
 
@@ -554,5 +562,7 @@ mod.get_hl = get_hl
 mod.set_hl = set_hl
 
 mod.prepare_parts = prepare_parts
+
+mod.get_next_list_item = get_next_list_item
 
 return mod

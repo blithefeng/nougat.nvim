@@ -61,8 +61,8 @@ local function init(class, type, opts)
   self.id = next_id()
   self.type = type
 
-  ---@type NougatItem[]
-  self._items = {}
+  ---@type NougatItem[]|{ next: fun(self: NougatItem[]): table,integer }
+  self._items = { next = u.get_next_list_item }
   self._hl_name = fallback_hl_name_by_type[self.type]
 
   self._breakpoints = opts and opts.breakpoints or { 0 }

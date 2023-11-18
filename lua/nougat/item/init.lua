@@ -167,6 +167,10 @@ local function init(class, config)
     end
   end
 
+  if type(self.content) == "table" then
+    self.content.next = u.get_next_list_item
+  end
+
   if type(self.hl) == "table" and self.hl.id then
     self._hl_item = self.hl
     self.hl = hl_item_processor
