@@ -1,6 +1,12 @@
 local Item = require("nougat.item")
 local u = require("nougat.util")
 
+--luacheck: push no max line length
+
+---@alias nougat_bar_hl integer|string|nougat_hl_def|(fun(self: NougatBar, ctx: nougat_core_expression_context): integer|string|nougat_hl_def)
+
+--luacheck: pop
+
 local next_id = u.create_id_generator()
 
 local fallback_hl_name_by_type = {
@@ -38,6 +44,37 @@ local get_breakpoint_index = {
   end,
 }
 
+---@param bar NougatBar
+---@param ctx nougat_core_expression_context
+---@return nougat_hl_def bar_hl
+---@return integer|string bar_hl_name
+local function get_bar_hl(bar, ctx)
+  local highlight = bar.hl
+
+  if type(highlight) == "function" then
+    highlight = highlight(bar, ctx)
+  end
+
+  if highlight == 0 then
+    local hl_name = bar._hl_name[ctx.is_focused]
+    return u.get_hl(hl_name), hl_name
+  end
+
+  if type(highlight) == "table" then
+    return highlight, u.set_hl(highlight, highlight)
+  end
+
+  if type(highlight) == "string" then
+    return u.get_hl(highlight), highlight
+  end
+
+  if type(highlight) == "number" then
+    return u.get_hl("User" .. highlight), highlight
+  end
+
+  error("missing bar highlight")
+end
+
 ---@param item NougatItem
 ---@return NougatItem
 local function clone_item(item)
@@ -63,7 +100,7 @@ local function get_breakpoint_type(breakpoints)
 end
 
 ---@param type 'statusline'|'tabline'|'winbar'
----@param opts? { breakpoints?: integer[] }
+---@param opts? { breakpoints?: integer[], hl?: nougat_bar_hl }
 local function init(class, type, opts)
   ---@class NougatBar
   local self = setmetatable({}, { __index = class })
@@ -71,10 +108,12 @@ local function init(class, type, opts)
   self.id = next_id()
   self.type = type
 
+  self._hl_name = fallback_hl_name_by_type[self.type]
+  self.hl = opts and opts.hl or 0
+
   --luacheck: push no max line length
   ---@type NougatItem[]|{ len: integer, next: (fun(self: NougatItem[]): table,integer), _overflow?: 'hide-all'|'hide-self' }
   self._items = { len = 0, next = u.get_next_list_item }
-  self._hl_name = fallback_hl_name_by_type[self.type]
   --luacheck: pop
 
   self._breakpoints = opts and opts.breakpoints or { 0 }
@@ -84,6 +123,7 @@ local function init(class, type, opts)
 end
 
 ---@class NougatBar
+---@field hl nougat_bar_hl
 local Bar = setmetatable({}, {
   __call = init,
   __name = "NougatBar",
@@ -134,8 +174,8 @@ local o_parts = { len = 0 }
 function Bar:generate(ctx)
   ctx.ctx.breakpoint = self._get_breakpoint_index(ctx.width, self._breakpoints)
 
-  local bar_hl = u.get_hl(self._hl_name[ctx.is_focused])
-  ctx.ctx.bar_hl = bar_hl
+  local bar_hl, bar_hl_name = get_bar_hl(self, ctx)
+  ctx.ctx.bar_hl, ctx.ctx.bar_hl_name = bar_hl, bar_hl_name
 
   o_hls.len, o_parts.len = 0, 0
   ctx.hls, ctx.parts = o_hls, o_parts

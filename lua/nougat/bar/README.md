@@ -39,6 +39,17 @@ local breakpoints = { [breakpoint.l] = math.huge, [breakpoint.m] = 128, [breakpo
 local bar = Bar('statusline', { breakpoints = breakpoints })
 ```
 
+### `hl`
+
+**Type:** `nil` / `integer` / `string` / `nougat_hl_def` / `(self: NougatBar, ctx: nougat_core_expression_context) -> integer|string|nougat_hl_def`
+
+Specifies the highlight for the bar. Different types of `hl` are treated in the following ways:
+
+- `nil|0`: is treated as the default highlight according to bar `type` 
+- `1-9`: is treated as `hl-User1..9` (check `:help hl-User1..9`)
+- `string`: is used as highlight group name
+- `nougat_hl_def`: is used has highlight definition (must have both `bg` and `fg`)
+
 ## Methods
 
 ### `bar:add_item`

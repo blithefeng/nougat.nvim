@@ -330,6 +330,7 @@ end
 ---@param ctx nougat_ctx
 ---@param item_fallback_hl? nougat_hl_def
 local function prepare_parts(items, ctx, item_fallback_hl)
+  local bar_hl_name = ctx.ctx.bar_hl_name
   local breakpoint = ctx.ctx.breakpoint
 
   local hls, parts = ctx.hls, ctx.parts
@@ -386,7 +387,7 @@ local function prepare_parts(items, ctx, item_fallback_hl)
           part_idx = part_idx + 3
         elseif item_hl.sl_idx then -- sep_left hl was added
           -- separator's highlight should not bleed into content
-          part_idx = core.add_highlight(0, nil, parts, part_idx)
+          part_idx = core.add_highlight(bar_hl_name, nil, parts, part_idx)
         end
       end
 
@@ -479,7 +480,7 @@ local function prepare_parts(items, ctx, item_fallback_hl)
           item_hl.r_idx = part_idx
           part_idx = part_idx + 3
         else
-          part_idx = core.add_highlight(0, nil, parts, part_idx)
+          part_idx = core.add_highlight(bar_hl_name, nil, parts, part_idx)
         end
       end
 
@@ -562,6 +563,7 @@ local function prepare_slots(items, ctx, item_fallback_hl)
 
   local initial_available_width = available_width
 
+  local bar_hl_name = ctx.ctx.bar_hl_name
   local breakpoint = ctx.ctx.breakpoint
 
   local slots = ctx.slots
@@ -626,7 +628,7 @@ local function prepare_slots(items, ctx, item_fallback_hl)
             part_idx = part_idx + 3
           elseif item_hl.sl_idx then -- sep_left hl was added
             -- separator's highlight should not bleed into content
-            part_idx = core.add_highlight(0, nil, parts, part_idx)
+            part_idx = core.add_highlight(bar_hl_name, nil, parts, part_idx)
           end
         end
 
@@ -757,7 +759,7 @@ local function prepare_slots(items, ctx, item_fallback_hl)
             item_hl.r_idx = part_idx
             part_idx = part_idx + 3
           else
-            part_idx = core.add_highlight(0, nil, parts, part_idx)
+            part_idx = core.add_highlight(bar_hl_name, nil, parts, part_idx)
           end
         end
 
