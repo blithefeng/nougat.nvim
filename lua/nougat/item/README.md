@@ -28,13 +28,15 @@ to prepare data for the functions called later in the item evaluation cycle.
 
 ### `hidden`
 
-**Type:** `boolean` or `(self: NougatItem, ctx: nougat_ctx) -> boolean`
+**Type:** `boolean` / `(self: NougatItem, ctx: nougat_ctx) -> boolean` / `NougatItem`
 
 Specifies if the item should be hidden.
 
+If a `NougatItem` is passed, that item's `hidden` will be used instead.
+
 ### `hl`
 
-**Type:** `integer` or `string` or `nougat_hl_def` or `(self: NougatItem, ctx: nougat_ctx) -> integer|string|nougat_hl_def` or `NougatItem`
+**Type:** `integer` / `string` / `nougat_hl_def` / `(self: NougatItem, ctx: nougat_ctx) -> integer|string|nougat_hl_def` / `NougatItem`
 
 Specifies the highlight for the item. Different types of `hl` are treated in the following ways:
 
@@ -56,7 +58,7 @@ If a function is passed, the return value is treated as mentioned above.
 
 For `bg` and `fg`, the special value `"bg"` / `"fg"` refers to the bar's default background / foreground color.
 
-If a `NougatItem` is passed, that item's highlight will be used instead.
+If a `NougatItem` is passed, that item's `hl` will be used instead.
 
 ### `content`
 

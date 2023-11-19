@@ -48,6 +48,15 @@ local function content_function_processor(item, ctx)
   parts.len = part_idx
 end
 
+local item_hidden_processor = {
+  boolean = function(item)
+    return item._item_hidden.hidden
+  end,
+  ["function"] = function(item, ctx)
+    return item._item_hidden:hidden(ctx)
+  end,
+}
+
 local function hl_item_processor(item, ctx)
   return type(item._hl_item.hl) == "function" and item._hl_item:hl(ctx) or item._hl_item.hl
 end
@@ -65,8 +74,13 @@ local function init(class, config)
   self.suffix = type(config.suffix) == "string" and { config.suffix } or config.suffix
   self.sep_right = iu.normalize_sep(1, config.sep_right)
 
-  self.hidden = config.hidden
   self.prepare = config.prepare
+
+  self.hidden = config.hidden
+  if type(self.hidden) == "table" then
+    self._item_hidden = self.hidden
+    self.hidden = item_hidden_processor[type(self._item_hidden.hidden)]
+  end
 
   self.priority = config.priority
 
