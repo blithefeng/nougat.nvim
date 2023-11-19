@@ -167,13 +167,14 @@ function mod.add_code(code, opts, parts, parts_len)
   return idx
 end
 
+local o_code_parts = {}
+
 ---@param code string
 ---@param opts? nougat_core_item_options
 ---@return string item
 function mod.code(code, opts)
-  local parts = {}
-  mod.add_code(code, opts, parts, 0)
-  return table.concat(parts)
+  local parts_len = mod.add_code(code, opts, o_code_parts, 0)
+  return table.concat(o_code_parts, nil, 1, parts_len)
 end
 
 ---@param item string
@@ -198,13 +199,14 @@ function mod.add_clickable(item, opts, parts, parts_len)
   return idx + 7
 end
 
+local o_clickable_parts = {}
+
 ---@param item string
 ---@param opts { context?: nougat_core_item_options_context, id?: string, on_click: string|nougat_core_click_handler }
 ---@return string clickable_item
 function mod.clickable(item, opts)
-  local parts = {}
-  mod.add_clickable(item, opts, parts, 0)
-  return table.concat(parts)
+  local parts_len = mod.add_clickable(item, opts, o_clickable_parts, 0)
+  return table.concat(o_clickable_parts, nil, 1, parts_len)
 end
 
 ---@param expression number|string|nougat_core_expression_fn
@@ -241,13 +243,14 @@ function mod.add_expression(expression, opts, parts, parts_len)
   return idx
 end
 
+local o_expression_parts = {}
+
 ---@param expression number|string|nougat_core_expression_fn
 ---@param opts? nougat_core_expression_options
 ---@return string expression_item
 function mod.expression(expression, opts)
-  local parts = {}
-  mod.add_expression(expression, opts, parts, 0)
-  return table.concat(parts)
+  local parts_len = mod.add_expression(expression, opts, o_expression_parts, 0)
+  return table.concat(o_expression_parts, nil, 1, parts_len)
 end
 
 ---@param item number|string
@@ -280,13 +283,14 @@ function mod.add_label(item, opts, parts, parts_len)
   return mod.add_literal(item, opts, parts, idx)
 end
 
+local o_label_parts = {}
+
 ---@param item number|string
 ---@param opts? nougat_core_item_options|{ tabnr?: integer, close?: boolean }
 ---@return string label_item
 function mod.label(item, opts)
-  local parts = {}
-  mod.add_label(item, opts, parts, 0)
-  return table.concat(parts)
+  local parts_len = mod.add_label(item, opts, o_label_parts, 0)
+  return table.concat(o_label_parts, nil, 1, parts_len)
 end
 
 ---@param item boolean|number|string
@@ -307,13 +311,14 @@ function mod.add_literal(item, opts, parts, parts_len)
   return mod.add_expression("'" .. string.gsub(tostring(item), "'", "''") .. "'", opts, parts, idx)
 end
 
+local o_literal_parts = {}
+
 ---@param item boolean|number|string
 ---@param opts? nougat_core_item_options
 ---@return string literal_item
 function mod.literal(item, opts)
-  local parts = {}
-  mod.add_literal(item, opts, parts, 0)
-  return table.concat(parts)
+  local parts_len = mod.add_literal(item, opts, o_literal_parts, 0)
+  return table.concat(o_literal_parts, nil, 1, parts_len)
 end
 
 ---@param items string|string[]
@@ -342,13 +347,14 @@ function mod.add_group(items, opts, parts, parts_len)
   return idx
 end
 
+local o_group_parts = {}
+
 ---@param items string|string[]
 ---@param opts? nougat_core_item_options
 ---@return string grouped_items
 function mod.group(items, opts)
-  local parts = {}
-  mod.add_group(items, opts, parts, 0)
-  return table.concat(parts)
+  local parts_len = mod.add_group(items, opts, o_group_parts, 0)
+  return table.concat(o_group_parts, nil, 1, parts_len)
 end
 
 -- `highlight` can be:
