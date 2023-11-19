@@ -195,22 +195,10 @@ end)()
 -- renders space only when item is rendered
 ---@param item NougatItem
 local function paired_space(item)
-  local hidden = item.hidden
-  if type(hidden) == "boolean" then
-    hidden = function(_, _)
-      return item.hidden
-    end
-  end
-  if type(hidden) == "function" then
-    hidden = function(_, ctx)
-      return item:hidden(ctx)
-    end
-  end
-
-  return {
+  return Item({
     content = sep.space().content,
-    hidden = hidden,
-  }
+    hidden = item,
+  })
 end
 
 local stl = Bar("statusline")
