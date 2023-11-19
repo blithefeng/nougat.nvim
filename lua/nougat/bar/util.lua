@@ -181,6 +181,7 @@ function mod.refresh_statusline(force_all)
   vim.cmd("redrawstatus")
 end
 
+---@param bar NougatBar|(fun(ctx:nougat_core_expression_context):NougatBar)
 function mod.set_tabline(bar)
   tabline.select = bar
 
