@@ -22,6 +22,14 @@ local get = {
     end
     return filename
   end,
+  filetype = function(bufnr)
+    local filetype = store[bufnr].filetype
+    if not filetype then
+      filetype = vim.api.nvim_buf_get_option(bufnr, "filetype")
+      store[bufnr].filetype = filetype
+    end
+    return filetype
+  end,
 }
 
 local subscribe = {
