@@ -2,7 +2,7 @@ local core = require("nougat.core")
 local Item = require("nougat.item")
 
 local function get_label_tabnr_content(_, ctx)
-  return "%" .. ctx.tab.tabnr
+  return "%" .. ctx.tab.tabnr .. "T"
 end
 
 -- re-used tables
@@ -12,7 +12,7 @@ local o_label_parts = {}
 local function get_label_content(_, ctx)
   o_label_opts.tabnr = "x"
   local parts_len = core.add_label(vim.fn.fnamemodify(ctx.tab.filename, ":t"), o_label_opts, o_label_parts, 0)
-  return table.concat(o_label_parts, nil, 3, parts_len)
+  return table.concat(o_label_parts, nil, 4, parts_len)
 end
 
 local hl = {}
