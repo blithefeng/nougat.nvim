@@ -13,7 +13,30 @@ local function run_hook(name, value, cache, bufnr)
   end
 end
 
+local get = {
+  filename = function(bufnr)
+    local filename = store[bufnr].filename
+    if not filename then
+      filename = vim.api.nvim_buf_get_name(bufnr)
+      store[bufnr].filename = filename
+    end
+    return filename
+  end,
+}
+
 local subscribe = {
+  filename = function()
+    hooks["filename.change"] = {}
+
+    on_event({ "BufReadPost", "BufFilePost" }, function(params)
+      local bufnr, filename = params.buf, params.match
+      local cache = store[bufnr]
+
+      cache.filename = filename
+
+      run_hook("filename.change", filename, cache, bufnr)
+    end)
+  end,
   filetype = function()
     hooks["filetype.change"] = {}
 
@@ -101,6 +124,10 @@ function mod.enable(key)
   subscribe[key]()
 
   enabled_key[key] = true
+end
+
+function mod.get(key, bufnr)
+  return get[key](bufnr)
 end
 
 ---@param event string
