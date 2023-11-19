@@ -1,3 +1,4 @@
+local buf_cache = require("nougat.cache.buffer")
 local Item = require("nougat.item")
 
 local function get_wordcount(format)
@@ -33,7 +34,20 @@ local function get_content(item, ctx)
   return cache.v
 end
 
-local mod = {}
+local hidden = {}
+
+---@param filetype_map table<string, true>
+---@return nougat_item_hidden
+function hidden.if_not_filetype(filetype_map)
+  buf_cache.enable("filetype")
+  return function(_, ctx)
+    return not filetype_map[buf_cache.get("filetype", ctx.bufnr)]
+  end
+end
+
+local mod = {
+  hidden = hidden,
+}
 
 function mod.create(opts)
   local item = Item({
