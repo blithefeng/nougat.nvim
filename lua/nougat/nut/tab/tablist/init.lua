@@ -1,6 +1,9 @@
+local buf_cache = require("nougat.cache.buffer")
 local Item = require("nougat.item")
 local u = require("nougat.util")
 local iu = require("nougat.item.util")
+
+buf_cache.enable("filename")
 
 local function get_content(item, ctx)
   local active_tabid = ctx.tabid
@@ -58,6 +61,7 @@ local function get_next_tab_item(tabs)
   tab_ctx.winid = vim.api.nvim_tabpage_get_win(tabid)
   tab_ctx.bufnr = vim.api.nvim_win_get_buf(tab_ctx.winid)
   tab_ctx.is_focused = ctx.tabid == tabid
+  tab_ctx.filename = buf_cache.get("filename", tab_ctx.bufnr)
 
   ctx.tab = tab_ctx
 
