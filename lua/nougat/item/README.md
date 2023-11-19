@@ -13,12 +13,18 @@ local Item = require("nougat.item")
 > **Note**:
 > **Common Options**
 
+### `init`
+
+**Type:** `(self: NougatItem) -> nil`
+
+If provided, the function is called after the item is initialized.
+
 ### `prepare`
 
 **Type:** `(self: NougatItem, ctx: nougat_ctx) -> nil`
 
-If provided, the function is called before each item is evaluated. It can be used to
-prepare data for the functions called later in the item evaluation cycle.
+If provided, the function is called before each time item is evaluated. It can be used
+to prepare data for the functions called later in the item evaluation cycle.
 
 ### `hidden`
 

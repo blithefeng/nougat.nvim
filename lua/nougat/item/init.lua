@@ -199,6 +199,10 @@ local function init(class, config)
 
   self._on_init_breakpoints = config.on_init_breakpoints
 
+  if config.init then
+    config.init(self)
+  end
+
   return self
 end
 
