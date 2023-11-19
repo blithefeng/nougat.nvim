@@ -104,7 +104,6 @@ function mod.create(opts)
     tab.prefix = type(tab.prefix) == "string" and { tab.prefix } or tab.prefix
     tab.suffix = type(tab.suffix) == "string" and { tab.suffix } or tab.suffix
     tab.sep_right = iu.normalize_sep(1, tab.sep_right)
-    tab.content.next = u.get_next_list_item
   end
 
   local item = Item({

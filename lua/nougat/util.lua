@@ -409,6 +409,10 @@ local function prepare_parts(items, ctx, item_fallback_hl)
               hls.len = hl_idx
               parts.len = part_idx
 
+              if not content.next then
+                content.next = get_next_list_item
+              end
+
               ---@cast content NougatItem[]
               prepare_parts(content, ctx, item_hl.c)
 
