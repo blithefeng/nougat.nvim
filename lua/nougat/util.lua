@@ -127,35 +127,24 @@ end
 local function get_item_hl_table(hls, hl_idx)
   ---@type nougat_lazy_item_hl
   local item_hl = hls[hl_idx]
-  if item_hl then
-    item_hl.c = nil
-    item_hl.c_idx = nil
-    item_hl.sl = nil
-    item_hl.sl_idx = nil
-    item_hl.sr = nil
-    item_hl.sr_idx = nil
-    item_hl.r = nil
-    item_hl.r_idx = nil
-    item_hl.fc_idx = nil
-    item_hl.lc_idx = nil
-    item_hl.fb = nil
-    return item_hl
+  if not item_hl then
+    item_hl = {}
+    hls[hl_idx] = item_hl
   end
 
-  item_hl = {
-    c = nil,
-    c_idx = nil,
-    sl = nil,
-    sl_idx = nil,
-    sr = nil,
-    sr_idx = nil,
-    r = nil,
-    r_idx = nil,
-    fc_idx = nil,
-    lc_idx = nil,
-    fb = nil,
-  }
-  hls[hl_idx] = item_hl
+  item_hl.c = nil
+  item_hl.c_idx = nil
+  item_hl.sl = nil
+  item_hl.sl_idx = nil
+  item_hl.sr = nil
+  item_hl.sr_idx = nil
+  item_hl.r = nil
+  item_hl.r_idx = nil
+  item_hl.fc_idx = nil
+  item_hl.lc_idx = nil
+  item_hl.fb = nil
+  item_hl.x = nil
+
   return item_hl
 end
 
@@ -399,29 +388,19 @@ function mod.initialize_priority_item_list(items, get_next)
   return items
 end
 
+local o_slot_hls = {}
+
 ---@param slots table<integer, (string|table)[]|{ hl: nougat_lazy_item_hl, len: integer }|nil>
 ---@param idx integer
 ---@return (string|table)[]|{ hl: nougat_lazy_item_hl, len: integer }
 local function get_item_parts_slot(slots, idx)
   local slot = slots[idx]
   if not slot then
-    slot = { hl = {} }
+    slot = {}
     slots[idx] = slot
   end
 
-  local item_hl = slot.hl
-  item_hl.c = nil
-  item_hl.c_idx = nil
-  item_hl.sl = nil
-  item_hl.sl_idx = nil
-  item_hl.sr = nil
-  item_hl.sr_idx = nil
-  item_hl.r = nil
-  item_hl.r_idx = nil
-  item_hl.fc_idx = nil
-  item_hl.lc_idx = nil
-  item_hl.fb = nil
-  item_hl.x = false
+  slot.hl = get_item_hl_table(o_slot_hls, idx)
 
   return slot
 end
