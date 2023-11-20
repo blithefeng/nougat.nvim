@@ -121,6 +121,9 @@ local function init(class, type, opts)
   self._breakpoints = opts and opts.breakpoints or { 0 }
   self._get_breakpoint_index = get_breakpoint_index[get_breakpoint_type(self._breakpoints)]
 
+  self._parts = { len = 0 }
+  self._hls = { len = 0 }
+
   return self
 end
 
@@ -164,10 +167,6 @@ function Bar:add_item(item)
   return item
 end
 
--- re-used tables
-local o_hls = { len = 0 }
-local o_parts = { len = 0 }
-
 --luacheck: push no max line length
 ---@alias nougat_ctx nougat_core_expression_context|{ hls: nougat_lazy_item_hl[]|{ len: integer }, parts: string[]|{ len: integer }, width: integer, slots?: any[], available_width?: integer }
 --luacheck: pop
@@ -179,6 +178,7 @@ function Bar:generate(ctx)
   local bar_hl, bar_hl_name = get_bar_hl(self, ctx)
   ctx.ctx.bar_hl, ctx.ctx.bar_hl_name = bar_hl, bar_hl_name
 
+  local o_hls, o_parts = self._hls, self._parts
   o_hls.len, o_parts.len = 0, 0
   ctx.hls, ctx.parts = o_hls, o_parts
 
