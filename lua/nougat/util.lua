@@ -388,19 +388,29 @@ function mod.initialize_priority_item_list(items, get_next)
   return items
 end
 
-local o_slot_hls = {}
-
 ---@param slots table<integer, (string|table)[]|{ hl: nougat_lazy_item_hl, len: integer }|nil>
 ---@param idx integer
 ---@return (string|table)[]|{ hl: nougat_lazy_item_hl, len: integer }
 local function get_item_parts_slot(slots, idx)
   local slot = slots[idx]
   if not slot then
-    slot = {}
+    slot = { hl = {} }
     slots[idx] = slot
   end
 
-  slot.hl = get_item_hl_table(o_slot_hls, idx)
+  local item_hl = slot.hl
+  item_hl.c = nil
+  item_hl.c_idx = nil
+  item_hl.sl = nil
+  item_hl.sl_idx = nil
+  item_hl.sr = nil
+  item_hl.sr_idx = nil
+  item_hl.r = nil
+  item_hl.r_idx = nil
+  item_hl.fc_idx = nil
+  item_hl.lc_idx = nil
+  item_hl.fb = nil
+  item_hl.x = nil
 
   return slot
 end
