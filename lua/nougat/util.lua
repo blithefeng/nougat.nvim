@@ -48,7 +48,7 @@ end
 
 local function get_next_list_item(items)
   local idx = (items._idx or 0) + 1
-  local item = items[idx]
+  local item = idx <= (items.len or idx) and items[idx] or nil
   items._idx = item and idx or 0
   return item, idx
 end
