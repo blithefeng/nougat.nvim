@@ -658,31 +658,37 @@ local function prepare_parts_from_slots(slots, parts, parts_len, hls, hls_len, i
 
     if type(slot) == "table" then
       if slot.len > 0 then
-        local c_len = parts_len
-        if slot.hl and not slot.hl.x then
+        local c_len, hl = parts_len, slot.hl
+        if hl and not hl.x then
           hls_len = hls_len + 1
 
           local item_hls_len = hls_len
 
-          if slot.hl.sl_idx then
-            slot.hl.sl_idx = slot.hl.sl_idx + parts_len
+          if hl.sl_idx then
+            hl.sl_idx = hl.sl_idx + parts_len
           end
 
-          if slot.hl.c_idx then
-            slot.hl.c_idx = slot.hl.c_idx + parts_len
+          if hl.c_idx then
+            hl.c_idx = hl.c_idx + parts_len
           end
 
-          if slot.hl.sr_idx then
-            slot.hl.sr_idx = slot.hl.sr_idx + parts_len
+          if hl.sr_idx then
+            hl.sr_idx = hl.sr_idx + parts_len
           end
 
-          if slot.hl.r_idx then
-            slot.hl.r_idx = slot.hl.r_idx + parts_len
+          if hl.r_idx then
+            hl.r_idx = hl.r_idx + parts_len
           end
 
-          parts_len, hls_len = prepare_parts_from_slots(slot, parts, parts_len, hls, hls_len, slot.hl)
+          parts_len, hls_len = prepare_parts_from_slots(slot, parts, parts_len, hls, hls_len, hl)
 
-          hls[item_hls_len] = slot.hl
+          if item_hls_len ~= hls_len then
+            local total_child_hls = hls_len - item_hls_len
+            hl.fc_idx = total_child_hls == 1 and hls_len or hls_len - total_child_hls + 1
+            hl.lc_idx = hls_len
+          end
+
+          hls[item_hls_len] = hl
         else
           parts_len, hls_len = prepare_parts_from_slots(slot, parts, parts_len, hls, hls_len)
         end
