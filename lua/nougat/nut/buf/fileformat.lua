@@ -24,7 +24,7 @@ function mod.create(opts)
     context = opts.context,
     cache = {
       scope = "buf",
-      invalidate = "BufWritePost",
+      clear = "BufWritePost",
     },
   })
 

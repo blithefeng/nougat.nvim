@@ -41,7 +41,7 @@ function mod.create(opts)
     context = opts.context,
     cache = {
       scope = "buf",
-      invalidate = "BufModifiedSet",
+      clear = "BufModifiedSet",
     },
   })
 

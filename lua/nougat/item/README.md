@@ -274,7 +274,7 @@ If `initial_value` is given, `NougatItem` will not automatically cache the item 
 
 If `cache.scope` is present and `cache.store` is missing, it will be used create cache store.
 
-It will also be used if `cache.invalidate` is `string`, for making id extractor from autocmd event. 
+It will also be used in `cache.clear` to make default `get_id` for autocmd event. 
 
 #### `cache.store`
 
@@ -285,15 +285,13 @@ If cache store is given, `NougatItem` will not automatically cache the item cont
 If it is missing, `NougatItem` will create a cache store using `cache.scope` and
 automatically cache the item content.
 
-#### `cache.invalidate`
+#### `cache.clear`
 
-**Type:** `string` or `{ [1]: string, [2]: (info: table) -> integer }`
+**Type:** `event` / `{ [1]: event, [2]?: get_id }` / `{ [1]: event, [2]?: get_id }[]`
 
-If `cache.invalidate` is `string`, it'll be used as the name for autocmd event.
-
-If `cache.invalidate` is `table`:
-- First element should be `string`, used as the name for autocmd event.
-- Second element should be `function`, used to extract id from autocmd event.
+where:
+- `event` is `string` or `string[]` (name for autocmd event)
+- `get_id` is `(info: table) -> integer` (used to extract id from autocmd event)
 
 ### `priority`
 

@@ -79,7 +79,7 @@ function mod.create(opts)
           get = function(store, ctx)
             return store[ctx.tab.bufnr][ctx.ctx.breakpoint]
           end,
-          invalidate = "BufFilePost",
+          clear = "BufFilePost",
         },
       }),
     },

@@ -61,6 +61,48 @@ local function hl_item_processor(item, ctx)
   return type(item._hl_item.hl) == "function" and item._hl_item:hl(ctx) or item._hl_item.hl
 end
 
+local function handle_item_cache_clear(clear, store, scope)
+  if type(clear) == "string" then
+    -- "A"
+    return handle_item_cache_clear({ clear }, store, scope)
+  end
+
+  if type(clear) ~= "table" then
+    error("unexpected item.cache.clear type: " .. type(clear))
+  end
+
+  if type(clear[2]) == "string" then
+    -- {"A", "B"}
+    local event_by_get_id = {}
+    for i = 1, #clear do
+      local event = clear[i]
+      local get_id = ic.get_invalidation_id_getter(event, scope)
+      if event_by_get_id[get_id] then
+        table.insert(event_by_get_id[get_id], event)
+      else
+        event_by_get_id[get_id] = { event }
+      end
+      for get_id_fn, events in pairs(event_by_get_id) do
+        u.on_event(events, function(info)
+          store:clear(get_id_fn(info))
+        end)
+      end
+    end
+  elseif type(clear[2]) == "function" then
+    -- {"C", get_id}
+    -- {{"D", "E"}, get_id}
+    local get_id = clear[2]
+    u.on_event(clear[1], function(info)
+      store:clear(get_id(info))
+    end)
+  elseif type(clear[2]) == "table" then
+    -- {{"A", "B"}, {"C", get_id}, {{"D", "E"}, get_id}}
+    for i = 1, #clear do
+      handle_item_cache_clear(clear[i], store, scope)
+    end
+  end
+end
+
 local function init(class, config)
   ---@class NougatItem
   local self = setmetatable({}, { __index = class })
@@ -151,18 +193,26 @@ local function init(class, config)
       self.content = ic.auto_cached_content
     end
 
-    if type(cache.invalidate) == "string" then
-      local get_id = ic.get_invalidation_id_getter(cache.invalidate, cache.scope)
-      u.on_event(cache.invalidate, function(info)
-        invalidate_cache(self._cache_store, get_id, info)
-      end)
-    elseif type(cache.invalidate) == "table" then
-      assert(type(cache.invalidate[1]) == "string", "unexpected cache.invalidate[1], expected string")
-      local get_id = cache.invalidate[2]
-      assert(type(get_id) == "function", "unexpected cache.invalidate[2], expected function")
-      u.on_event(cache.invalidate[1], function(info)
-        invalidate_cache(self._cache_store, get_id, info)
-      end)
+    if cache.clear then
+      handle_item_cache_clear(cache.clear, self._cache_store, cache.scope)
+    end
+
+    if cache.invalidate then
+      vim.deprecate("NougatItem option cache.invalidate", "cache.clear", "0.4.0", "nougat.nvim")
+
+      if type(cache.invalidate) == "string" then
+        local get_id = ic.get_invalidation_id_getter(cache.invalidate, cache.scope)
+        u.on_event(cache.invalidate, function(info)
+          invalidate_cache(self._cache_store, get_id, info)
+        end)
+      elseif type(cache.invalidate) == "table" then
+        assert(type(cache.invalidate[1]) == "string", "unexpected cache.invalidate[1], expected string")
+        local get_id = cache.invalidate[2]
+        assert(type(get_id) == "function", "unexpected cache.invalidate[2], expected function")
+        u.on_event(cache.invalidate[1], function(info)
+          invalidate_cache(self._cache_store, get_id, info)
+        end)
+      end
     end
   end
 
