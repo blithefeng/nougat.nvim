@@ -13,7 +13,7 @@ The complex calculations can be done in multiple places:
 
 ## `cache.create_store`
 
-_Signature:_ `(type: 'buf'|'win'|'tab', name: string, default_value?: table) -> table`
+_Signature:_ `(type: 'buf'|'win'|'tab', name: string, default_value?: table) -> NougatCacheStore`
 
 The returned `table` is the cache store.
 

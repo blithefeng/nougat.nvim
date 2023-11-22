@@ -2,18 +2,38 @@ local on_event = require("nougat.util").on_event
 
 local mod = {}
 
+---@class NougatCacheStore
+---@field [integer] table|table<integer, table>
+
+---@type table<'buf'|'win'|'tab', table<string, NougatCacheStore>>
 local registry = { buf = {}, win = {}, tab = {} }
+
+---@param store NougatCacheStore
+---@param id integer
+local function clear_store(store, id)
+  local cache = store[id]
+  if cache then
+    for key in pairs(cache) do
+      cache[key] = nil
+    end
+  end
+end
 
 ---@param cache_type 'buf'|'win'|'tab'
 ---@param name string
 ---@param default_value? table
+---@return NougatCacheStore cache_store
 function mod.create_store(cache_type, name, default_value)
   if registry[cache_type][name] then
     error("already created")
   end
 
   default_value = default_value or {}
-  local storage = setmetatable({}, {
+  ---@class NougatCacheStore
+  local store = setmetatable({
+    type = cache_type,
+    clear = clear_store,
+  }, {
     __index = function(storage, id)
       return rawset(
         storage,
@@ -32,9 +52,9 @@ function mod.create_store(cache_type, name, default_value)
     end,
   })
 
-  registry[cache_type][name] = storage
+  registry[cache_type][name] = store
 
-  return storage
+  return store
 end
 
 ---@param type 'buf'|'win'|'tab'
