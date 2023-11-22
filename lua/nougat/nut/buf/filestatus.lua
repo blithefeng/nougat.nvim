@@ -13,7 +13,7 @@ local function get_content(item, ctx)
 
   local part_idx = 0
 
-  local buf_cache = item.buf_cache[bufnr]
+  local cache = item:cache(ctx)
 
   if config.readonly and vim.api.nvim_buf_get_option(bufnr, "readonly") then
     part_idx = part_idx + 1
@@ -21,7 +21,7 @@ local function get_content(item, ctx)
     part_idx = part_idx + 1
     o_parts[part_idx] = config.sep
   end
-  if config.modified and buf_cache.modified then
+  if config.modified and cache.modified then
     part_idx = part_idx + 1
     o_parts[part_idx] = config.modified
     part_idx = part_idx + 1
@@ -59,9 +59,13 @@ function mod.create(opts)
     }, opts.config or {}),
     on_click = opts.on_click,
     context = opts.context,
+    cache = {
+      get = function(store, ctx)
+        return store[ctx.bufnr]
+      end,
+      store = buffer_cache.store,
+    },
   })
-
-  item.buf_cache = buffer_cache.store
 
   return item
 end
