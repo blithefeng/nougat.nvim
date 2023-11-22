@@ -141,9 +141,9 @@ local filestatus = stl:add_item(nut.buf.filestatus({
   suffix = " ",
   sep_right = sep.right_chevron_solid(true),
   config = {
-    modified = "",
-    nomodifiable = "",
-    readonly = "",
+    modified = "󰏫",
+    nomodifiable = "󰏯",
+    readonly = "",
     sep = " ",
   },
 }))

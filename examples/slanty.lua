@@ -142,9 +142,9 @@ local filestatus = stl:add_item(nut.buf.filestatus({
   suffix = " ",
   sep_right = sep.right_lower_triangle_solid(true),
   config = {
-    modified = "",
-    nomodifiable = "",
-    readonly = "",
+    modified = "󰏫",
+    nomodifiable = "󰏯",
+    readonly = "",
     sep = " ",
   },
 }))
@@ -155,10 +155,10 @@ stl:add_item(nut.buf.diagnostic_count({
   prefix = " ",
   suffix = " ",
   config = {
-    error = { prefix = " ", fg = color.red },
-    warn = { prefix = " ", fg = color.yellow },
-    info = { prefix = " ", fg = color.blue },
-    hint = { prefix = " ", fg = color.green },
+    error = { prefix = " ", fg = color.red },
+    warn = { prefix = " ", fg = color.yellow },
+    info = { prefix = " ", fg = color.blue },
+    hint = { prefix = "󰌶 ", fg = color.green },
   },
 }))
 stl:add_item(nut.buf.filetype({
