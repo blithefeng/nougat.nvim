@@ -35,13 +35,14 @@ local function get_combined_content(item, ctx)
 
   local config = item:config(ctx)
 
+  local ctx_hl_bg, ctx_hl_fg = ctx.hl.bg, ctx.hl.fg
   -- cook combined content lazily
   vim.schedule(function()
     local part_idx, parts = 0, {}
 
-    local bar_hl = ctx.ctx.bar_hl
-    local item_hl = item.hl or bar_hl
-    local sep_hl = config.sep and core.highlight(get_hl_name(item.hl or {}, bar_hl))
+    local ctx_hl = { bg = ctx_hl_bg, fg = ctx_hl_fg }
+    local item_hl = item.hl or ctx_hl
+    local sep_hl = config.sep and core.highlight(get_hl_name(item_hl, ctx_hl))
 
     if config.error and cache[severity.ERROR] > 0 then
       if part_idx > 0 and config.sep then

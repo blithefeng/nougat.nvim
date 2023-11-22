@@ -1,6 +1,5 @@
 local Item = require("nougat.item")
 local get_hl_def = require("nougat.util.hl").get_hl_def
-local get_hl_name = require("nougat.util.hl").get_hl_name
 local u = require("nougat.util")
 
 --luacheck: push no max line length
@@ -49,7 +48,6 @@ local get_breakpoint_index = {
 ---@param bar NougatBar
 ---@param ctx nougat_core_expression_context
 ---@return nougat_hl_def bar_hl
----@return integer|string bar_hl_name
 local function get_bar_hl(bar, ctx)
   local highlight = bar.hl
 
@@ -59,19 +57,19 @@ local function get_bar_hl(bar, ctx)
 
   if highlight == 0 then
     local hl_name = bar._hl_name[ctx.is_focused]
-    return get_hl_def(hl_name), hl_name
+    return get_hl_def(hl_name)
   end
 
   if type(highlight) == "table" then
-    return highlight, get_hl_name(highlight, highlight)
+    return highlight
   end
 
   if type(highlight) == "string" then
-    return get_hl_def(highlight), highlight
+    return get_hl_def(highlight)
   end
 
   if type(highlight) == "number" then
-    return get_hl_def("User" .. highlight), highlight
+    return get_hl_def("User" .. highlight)
   end
 
   error("missing bar highlight")
@@ -123,6 +121,7 @@ local function init(class, type, opts)
 
   self._parts = { len = 0 }
   self._hls = { len = 0 }
+  self._hl = { bg = nil, fg = nil }
 
   return self
 end
@@ -168,15 +167,16 @@ function Bar:add_item(item)
 end
 
 --luacheck: push no max line length
----@alias nougat_ctx nougat_core_expression_context|{ hls: nougat_lazy_item_hl[]|{ len: integer }, parts: string[]|{ len: integer }, width: integer, slots?: any[], available_width?: integer }
+---@alias nougat_ctx nougat_core_expression_context|{ hl: nougat_hl_def, hls: nougat_lazy_item_hl[]|{ len: integer }, parts: string[]|{ len: integer }, width: integer, slots?: any[], available_width?: integer }
 --luacheck: pop
 
 ---@param ctx nougat_ctx
 function Bar:generate(ctx)
   ctx.ctx.breakpoint = self._get_breakpoint_index(ctx.width, self._breakpoints)
 
-  local bar_hl, bar_hl_name = get_bar_hl(self, ctx)
-  ctx.ctx.bar_hl, ctx.ctx.bar_hl_name = bar_hl, bar_hl_name
+  local hl, bar_hl = self._hl, get_bar_hl(self, ctx)
+  hl.bg, hl.fg = bar_hl.bg, bar_hl.fg
+  ctx.hl = hl
 
   local o_hls, o_parts = self._hls, self._parts
   o_hls.len, o_parts.len = 0, 0

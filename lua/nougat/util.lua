@@ -114,8 +114,6 @@ end
 ---@field sl_idx? integer sep left index
 ---@field sr? false|nougat_separator_hl_def sep right (`false` means `sep_right` w/o hl)
 ---@field sr_idx? integer sep right index
----@field r? nougat_hl_def reset
----@field r_idx? integer reset index
 ---@field fc_idx? integer first child index
 ---@field lc_idx? integer last child index
 ---@field fb? nougat_hl_def fallback
@@ -128,7 +126,7 @@ local function get_item_hl_table(hls, hl_idx)
   ---@type nougat_lazy_item_hl
   local item_hl = hls[hl_idx]
   if not item_hl then
-    item_hl = {}
+    item_hl = { fb = {} }
     hls[hl_idx] = item_hl
   end
 
@@ -138,11 +136,9 @@ local function get_item_hl_table(hls, hl_idx)
   item_hl.sl_idx = nil
   item_hl.sr = nil
   item_hl.sr_idx = nil
-  item_hl.r = nil
-  item_hl.r_idx = nil
   item_hl.fc_idx = nil
   item_hl.lc_idx = nil
-  item_hl.fb = nil
+  -- item_hl.fb.bg, item_hl.fb.fg = nil, nil
   item_hl.x = nil
 
   return item_hl
@@ -187,13 +183,14 @@ end
 
 ---@param items NougatItem[]|{ len?: integer }
 ---@param ctx nougat_ctx
----@param item_fallback_hl? nougat_hl_def
-local function prepare_parts(items, ctx, item_fallback_hl)
-  local bar_hl_name = ctx.ctx.bar_hl_name
+local function prepare_parts(items, ctx)
   local breakpoint = ctx.ctx.breakpoint
 
   local hls, parts = ctx.hls, ctx.parts
   local hl_idx, part_idx
+
+  local ctx_hl = ctx.hl
+  local reset_hl_bg, reset_hl_fg, reset_hl_name = ctx_hl.bg, ctx_hl.fg, get_hl_name(ctx_hl, ctx_hl)
 
   local item = items:next()
   while item do
@@ -209,7 +206,7 @@ local function prepare_parts(items, ctx, item_fallback_hl)
       hl_idx = hl_idx + 1
 
       local item_hl = get_item_hl_table(hls, hl_idx)
-      item_hl.fb = item_fallback_hl
+      item_hl.fb.bg, item_hl.fb.fg = reset_hl_bg, reset_hl_fg
 
       if item.sep_left then
         local sep = item.sep_left[breakpoint]
@@ -246,8 +243,14 @@ local function prepare_parts(items, ctx, item_fallback_hl)
           part_idx = part_idx + 3
         elseif item_hl.sl_idx then -- sep_left hl was added
           -- separator's highlight should not bleed into content
-          part_idx = core.add_highlight(bar_hl_name, nil, parts, part_idx)
+          part_idx = core.add_highlight(reset_hl_name, nil, parts, part_idx)
         end
+      end
+
+      if item_hl.c then
+        ctx_hl.bg, ctx_hl.fg = item_hl.c.bg or ctx_hl.bg, item_hl.c.fg or ctx_hl.fg
+      else
+        ctx_hl.bg, ctx_hl.fg = reset_hl_bg, reset_hl_fg
       end
 
       if item.content then
@@ -285,7 +288,7 @@ local function prepare_parts(items, ctx, item_fallback_hl)
               end
 
               ---@cast content NougatItem[]
-              prepare_parts(content, ctx, item_hl.c)
+              prepare_parts(content, ctx)
 
               if hl_idx ~= hls.len then
                 local total_child_hls = hls.len - hl_idx
@@ -334,13 +337,7 @@ local function prepare_parts(items, ctx, item_fallback_hl)
       end
 
       if item_hl.c or item_hl.sl or item_hl.sr then
-        if item_fallback_hl then
-          item_hl.r = item_fallback_hl
-          item_hl.r_idx = part_idx
-          part_idx = part_idx + 3
-        else
-          part_idx = core.add_highlight(bar_hl_name, nil, parts, part_idx)
-        end
+        part_idx = core.add_highlight(reset_hl_name, nil, parts, part_idx)
       end
 
       if item.hl == false then
@@ -394,7 +391,7 @@ end
 local function get_item_parts_slot(slots, idx)
   local slot = slots[idx]
   if not slot then
-    slot = { hl = {} }
+    slot = { hl = { fb = {} } }
     slots[idx] = slot
   end
 
@@ -405,11 +402,9 @@ local function get_item_parts_slot(slots, idx)
   item_hl.sl_idx = nil
   item_hl.sr = nil
   item_hl.sr_idx = nil
-  item_hl.r = nil
-  item_hl.r_idx = nil
   item_hl.fc_idx = nil
   item_hl.lc_idx = nil
-  item_hl.fb = nil
+  -- item_hl.fb.bg, item_hl.fb.fg = nil, nil
   item_hl.x = nil
 
   return slot
@@ -417,12 +412,14 @@ end
 
 local o_eval_stl_opts = {}
 
-local function prepare_slots(items, ctx, item_fallback_hl)
+local function prepare_slots(items, ctx)
   local available_width = ctx.available_width
 
   local initial_available_width = available_width
 
-  local bar_hl_name = ctx.ctx.bar_hl_name
+  local ctx_hl = ctx.hl
+  local reset_hl_bg, reset_hl_fg, reset_hl_name = ctx_hl.bg, ctx_hl.fg, get_hl_name(ctx_hl, ctx_hl)
+
   local breakpoint = ctx.ctx.breakpoint
 
   local slots = ctx.slots
@@ -433,7 +430,7 @@ local function prepare_slots(items, ctx, item_fallback_hl)
 
     local parts = get_item_parts_slot(slots, item_idx)
     local item_hl = parts.hl
-    item_hl.fb = item_fallback_hl
+    item_hl.fb.bg, item_hl.fb.fg = reset_hl_bg, reset_hl_fg
 
     local part_idx = 0
 
@@ -487,8 +484,14 @@ local function prepare_slots(items, ctx, item_fallback_hl)
             part_idx = part_idx + 3
           elseif item_hl.sl_idx then -- sep_left hl was added
             -- separator's highlight should not bleed into content
-            part_idx = core.add_highlight(bar_hl_name, nil, parts, part_idx)
+            part_idx = core.add_highlight(reset_hl_name, nil, parts, part_idx)
           end
+        end
+
+        if item_hl.c then
+          ctx_hl.bg, ctx_hl.fg = item_hl.c.bg or ctx_hl.bg, item_hl.c.fg or ctx_hl.fg
+        else
+          ctx_hl.bg, ctx_hl.fg = reset_hl_bg, reset_hl_fg
         end
 
         local nested_items_idx, nested_items
@@ -600,7 +603,7 @@ local function prepare_slots(items, ctx, item_fallback_hl)
           ctx.slots = nested_slots
 
           ---@cast nested_items NougatItem[]
-          prepare_slots(nested_items, ctx, item_hl.c)
+          prepare_slots(nested_items, ctx)
 
           if ctx.available_width == available_width then
             should_skip_slot = true
@@ -613,13 +616,7 @@ local function prepare_slots(items, ctx, item_fallback_hl)
         end
 
         if item_hl.c or item_hl.sl or item_hl.sr then
-          if item_fallback_hl then
-            item_hl.r = item_fallback_hl
-            item_hl.r_idx = part_idx
-            part_idx = part_idx + 3
-          else
-            part_idx = core.add_highlight(bar_hl_name, nil, parts, part_idx)
-          end
+          part_idx = core.add_highlight(reset_hl_name, nil, parts, part_idx)
         end
 
         if item.hl == false then
@@ -674,10 +671,6 @@ local function prepare_parts_from_slots(slots, parts, parts_len, hls, hls_len, i
 
           if hl.sr_idx then
             hl.sr_idx = hl.sr_idx + parts_len
-          end
-
-          if hl.r_idx then
-            hl.r_idx = hl.r_idx + parts_len
           end
 
           parts_len, hls_len = prepare_parts_from_slots(slot, parts, parts_len, hls, hls_len, hl)
@@ -783,10 +776,6 @@ function mod.process_bar_highlights(ctx, fallback_hl)
         parts,
         hl.sr_idx
       )
-    end
-
-    if hl.r then
-      core.add_highlight(get_hl_name(hl.r, fallback_hl), nil, parts, hl.r_idx)
     end
   end
 end
