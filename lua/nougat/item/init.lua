@@ -80,37 +80,39 @@ local next_id = u.create_id_generator()
 
 local invalidate_cache = ic.invalidate_cache
 
+local o_clickable_parts = { len = 0 }
+
 ---@param item NougatItem
 ---@param ctx nougat_bar_ctx
-local function content_function_processor(item, ctx)
-  local parts = ctx.parts
-  local part_idx = parts.len
-
-  part_idx = core.add_clickable("", {
+local function clickable_function_content(item, ctx)
+  local part_idx = core.add_clickable("", {
     id = item._on_click_id,
     context = item._on_click_context or item,
     on_click = item._on_click,
-  }, parts, part_idx)
+  }, o_clickable_parts, 0)
 
-  local end_delim = parts[part_idx]
+  local end_delim = o_clickable_parts[part_idx]
 
-  parts.len = part_idx - 2
+  o_clickable_parts.len = part_idx - 2
 
-  local content = item._content(item, ctx) or ""
+  local ctx_parts = ctx.parts
+  ctx.parts = o_clickable_parts
+  local content = item:_click_fn_content(ctx) or ""
+  ctx.parts = ctx_parts
 
   if #content > 0 then
-    parts[part_idx - 1] = content
+    o_clickable_parts[part_idx - 1] = content
   else -- no content returned
-    if part_idx == parts.len then -- no parts added
+    if part_idx == o_clickable_parts.len then -- no parts added
       -- discard clickable parts
       part_idx = part_idx - 7
     else
-      part_idx = parts.len
-      parts[part_idx + 1] = end_delim
+      part_idx = o_clickable_parts.len
+      o_clickable_parts[part_idx + 1] = end_delim
     end
   end
 
-  parts.len = part_idx
+  return table.concat(o_clickable_parts, nil, 1, part_idx)
 end
 
 local item_hidden_processor = {
@@ -257,6 +259,23 @@ local function init(class, config)
     self.content = config.content
   end
 
+  if config.on_click then
+    if type(self.content) == "function" then
+      self._click_fn_content = self.content
+      self._on_click = config.on_click
+      self._on_click_id = self.id .. "_click_handler"
+      self._on_click_context = config.context
+      self.content = clickable_function_content
+    else
+      ---@diagnostic disable-next-line: param-type-mismatch
+      self.content = core.clickable(self.content, {
+        id = self.id .. "_click_handler",
+        context = config.context or self,
+        on_click = config.on_click,
+      })
+    end
+  end
+
   if config.cache then
     ---@type nougat_item_config.cache
     local cache = config.cache
@@ -321,23 +340,6 @@ local function init(class, config)
           break
         end
       end
-    end
-  end
-
-  if config.on_click then
-    if type(self.content) == "function" then
-      self._content = self.content
-      self._on_click = config.on_click
-      self._on_click_id = self.id .. "_click_handler"
-      self._on_click_context = config.context
-      self.content = content_function_processor
-    else
-      ---@diagnostic disable-next-line: param-type-mismatch
-      self.content = core.clickable(self.content, {
-        id = self.id .. "_click_handler",
-        context = config.context or self,
-        on_click = config.on_click,
-      })
     end
   end
 
