@@ -728,14 +728,20 @@ function mod.process_bar_highlights(ctx, fallback_hl)
       local near_prev_hl = idx > 1 and hls[idx - 1] or nil
       -- for first child:
       -- - prev sibling of parent
-      local far_prev_hl_c = ((near_prev_hl and idx == near_prev_hl.fc_idx) and idx > 2) and hls[idx - 2].c or nil
+      local far_prev_hl = ((near_prev_hl and idx == near_prev_hl.fc_idx) and idx > 2) and hls[idx - 2] or nil
       -- for parent
       -- - first child
-      local near_next_hl_c = hl.fc_idx and hls[hl.fc_idx].c or nil
+      local near_next_hl = hl.fc_idx and hls[hl.fc_idx] or nil
 
       core.add_highlight(
         get_hl_name(
-          prepare_sep_left_hl(hl.sl, far_prev_hl_c, near_prev_hl and near_prev_hl.c or nil, hl.c, near_next_hl_c),
+          prepare_sep_left_hl(
+            hl.sl,
+            far_prev_hl and (far_prev_hl.c or far_prev_hl.fb) or nil,
+            near_prev_hl and (near_prev_hl.c or near_prev_hl.fb) or nil,
+            hl.c,
+            near_next_hl and (near_next_hl.c or near_next_hl.fb) or nil
+          ),
           hl.fb or fallback_hl
         ),
         nil,
@@ -751,7 +757,7 @@ function mod.process_bar_highlights(ctx, fallback_hl)
     if hl.sr then
       -- for parent:
       -- - last child
-      local prev_hl_c = hl.lc_idx and hls[hl.lc_idx].c or nil
+      local prev_hl = hl.lc_idx and hls[hl.lc_idx] or nil
       -- for parent:
       -- - next sibling
       -- for children:
@@ -765,11 +771,17 @@ function mod.process_bar_highlights(ctx, fallback_hl)
       -- - first child of next sibling
       -- for last child:
       -- - first child of next sibling of parent
-      local far_next_hl_c = (near_next_hl and near_next_hl.fc_idx) and hls[near_next_hl.fc_idx].c or nil
+      local far_next_hl = (near_next_hl and near_next_hl.fc_idx) and hls[near_next_hl.fc_idx] or nil
 
       core.add_highlight(
         get_hl_name(
-          prepare_sep_right_hl(hl.sr, prev_hl_c, hl.c, near_next_hl and near_next_hl.c or nil, far_next_hl_c),
+          prepare_sep_right_hl(
+            hl.sr,
+            prev_hl and (prev_hl.c or prev_hl.fb) or nil,
+            hl.c,
+            near_next_hl and (near_next_hl.c or near_next_hl.fb) or nil,
+            far_next_hl and (far_next_hl.c or far_next_hl.fb) or nil
+          ),
           hl.fb or fallback_hl
         ),
         nil,
