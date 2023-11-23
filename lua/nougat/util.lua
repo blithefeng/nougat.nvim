@@ -509,6 +509,8 @@ local function prepare_slots(items, ctx)
           if content_type == "function" then
             parts.len = part_idx
 
+            ctx.parts = parts
+
             content = item:content(ctx) or ""
             content_type = type(content)
           end
@@ -702,8 +704,10 @@ local function prepare_parts_from_slots(slots, parts, parts_len, hls, hls_len, i
 end
 
 function mod.prepare_priority_parts(items, ctx)
+  local parts = ctx.parts
   prepare_slots(items, ctx)
-  ctx.parts.len, ctx.hls.len = prepare_parts_from_slots(ctx.slots, ctx.parts, 0, ctx.hls, 0)
+  parts.len, ctx.hls.len = prepare_parts_from_slots(ctx.slots, parts, 0, ctx.hls, 0)
+  ctx.parts = parts
 end
 
 ---@param ctx nougat_bar_ctx
