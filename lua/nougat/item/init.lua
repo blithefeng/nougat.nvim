@@ -37,6 +37,7 @@ local next_id = u.create_id_generator()
 ---@field context? nougat_core_item_options_context
 ---@field on_click? string|nougat_core_click_handler
 ---@field priority? integer
+---@field ctx? table
 
 ---@class nougat_item_config__core: nougat_item_config__nil
 ---@field align? 'left'|'right'
@@ -183,6 +184,8 @@ local function init(class, config)
   local self = setmetatable({}, { __index = class })
 
   self.id = next_id()
+
+  self.ctx = config.ctx or {}
 
   self.hl = config.hl
   if type(self.hl) == "table" and self.hl.id then
@@ -363,6 +366,7 @@ end
 ---@field sep_right? nougat_separator[]
 ---@field hidden? nougat_item_hidden
 ---@field prepare? fun(self: NougatItem, ctx: nougat_ctx):nil
+---@field ctx table
 local Item = setmetatable({}, {
   __call = init,
   __name = "NougatItem",

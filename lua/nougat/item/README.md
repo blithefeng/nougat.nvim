@@ -303,6 +303,12 @@ If `priority` is present for any item, the `NougatBar` considers item priority d
 Items with higher priority will be evaluated first. And depending on the available width, items with
 lower priority will automatically be hidden from the bar.
 
+### `ctx`
+
+**Type:** `table`
+
+This is a place to store whatever you want with the item.
+
 > **Note**:
 > **Advance Options**
 
