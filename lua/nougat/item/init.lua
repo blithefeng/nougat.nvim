@@ -18,6 +18,7 @@ local next_id = u.create_id_generator()
 ---@alias nougat_item_config.cache.clear nougat_item_config.cache.clear__event | { [1]: nougat_item_config.cache.clear__event, [2]?: nougat_item_config.cache.clear__get_id } | { [1]: nougat_item_config.cache.clear__event, [2]?: nougat_item_config.cache.clear__get_id }[]
 
 ---@class nougat_item_config.cache
+---@field name? string
 ---@field get? fun(store: NougatCacheStore, ctx: nougat_bar_ctx):table
 ---@field scope? 'buf'|'win'|'tab'
 ---@field initial_value? table
@@ -283,7 +284,7 @@ local function init(class, config)
     if cache.store then
       self._cache_store = cache.store
     elseif cache.scope then
-      self._cache_store = create_store(cache.scope, self.id .. "_cache_store", cache.initial_value)
+      self._cache_store = create_store(cache.scope, cache.name or self.id .. "_cache_store", cache.initial_value)
     end
     assert(type(self._cache_store) == "table", "one of cache.scope or cache.store is required")
 

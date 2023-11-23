@@ -253,6 +253,13 @@ Associates the item with the specified tab number.
 
 ### `cache`
 
+#### `cache.name`
+
+**Type:** `string`
+
+Name of the cache store. If name is provided, the same cache store
+will be used for all items with the same `cache.name`.
+
 #### `cache.get`
 
 **Type:** `function`

@@ -19,32 +19,41 @@ local function clear_store(store, id)
   end
 end
 
+local default_initial_value = {}
+
 ---@param cache_type 'buf'|'win'|'tab'
 ---@param name string
----@param default_value? table
+---@param initial_value? table
 ---@return NougatCacheStore cache_store
-function mod.create_store(cache_type, name, default_value)
+function mod.create_store(cache_type, name, initial_value)
+  initial_value = initial_value or default_initial_value
+
   if registry[cache_type][name] then
-    error("already created")
+    local store = registry[cache_type][name]
+    if store._initial_value ~= initial_value then
+      error("cache store already created with different initial_value")
+    end
+    return store
   end
 
-  default_value = default_value or {}
   ---@class NougatCacheStore
   local store = setmetatable({
     type = cache_type,
+    name = name,
     clear = clear_store,
+    _initial_value = initial_value,
   }, {
     __index = function(storage, id)
       return rawset(
         storage,
         id,
-        setmetatable(vim.deepcopy(default_value), {
+        setmetatable(vim.deepcopy(initial_value), {
           __index = function(cache, key)
             if type(key) == "number" then
-              return rawset(cache, key, vim.deepcopy(default_value))[key]
+              return rawset(cache, key, vim.deepcopy(initial_value))[key]
             end
-            if default_value[key] ~= nil then
-              return rawset(cache, key, default_value[key])[key]
+            if initial_value[key] ~= nil then
+              return rawset(cache, key, vim.deepcopy(initial_value[key]))[key]
             end
           end,
         })
