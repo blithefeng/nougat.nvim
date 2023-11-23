@@ -1,38 +1,33 @@
 local Item = require("nougat.item")
+local buf_cache = require("nougat.cache.buffer")
+
 local has_devicons, devicons = pcall(require, "nvim-web-devicons")
 
-local buffer_cache = require("nougat.cache.buffer")
-
-buffer_cache.enable("filetype")
+buf_cache.enable("filetype")
 
 local filetype_overide = {
   fugitive = "git",
   gitcommit = "git",
 }
 
----@type table<string, string>
-local icon_char_by_ft = {}
----@type table<string, { fg: string }>
-local icon_hl_by_ft = {}
-
-local function get_content(item, ctx)
-  return icon_char_by_ft[item:cache(ctx).filetype]
-end
-
-local function get_hl(item, ctx)
-  return icon_hl_by_ft[item:cache(ctx).filetype]
-end
-
 local function prepare(item, ctx)
-  local filetype = item:cache(ctx).filetype or ""
-
-  if not icon_char_by_ft[filetype] then
+  local filetype = buf_cache.get("filetype", ctx.tab.bufnr) or ""
+  local cache = item:cache(ctx)
+  if not cache.c then
     local ft = filetype_overide[filetype] or filetype
-    local icon_char, icon_fg = devicons.get_icon_color_by_filetype(ft, { default = true })
-    icon_char_by_ft[filetype] = icon_char
-    icon_hl_by_ft[filetype] = { fg = icon_fg }
+    cache.c, cache.hl.fg = devicons.get_icon_color_by_filetype(ft, { default = true })
   end
 end
+
+local function hl(item, ctx)
+  return item:cache(ctx).hl
+end
+
+local function content(item, ctx)
+  return item:cache(ctx).c
+end
+
+local cache_initial_value = { c = nil, hl = {} }
 
 local mod = {}
 
@@ -41,19 +36,22 @@ function mod.create(opts)
     priority = opts.priority,
     prepare = prepare,
     hidden = opts.hidden,
-    hl = get_hl,
+    hl = hl,
     sep_left = opts.sep_left,
     prefix = opts.prefix,
-    content = get_content,
+    content = content,
     suffix = opts.suffix,
     sep_right = opts.sep_right,
     on_click = opts.on_click,
     context = opts.context,
     cache = {
+      name = "nut.tab.tablist.icon",
+      scope = "buf",
       get = function(store, ctx)
         return store[ctx.tab.bufnr]
       end,
-      store = buffer_cache.store,
+      initial_value = cache_initial_value,
+      clear = "BufFilePost",
     },
   })
 
