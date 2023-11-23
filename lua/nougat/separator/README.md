@@ -31,7 +31,7 @@ These are the built-in separators:
 
 Each of them is a function.
 
-_Signature:_ `(hl?: boolean|nougat_separator_hl_def|(fun(item: NougatItem, ctx: nougat_ctx) -> nougat_separator_hl_def)) -> nougat_separator`
+_Signature:_ `(hl?: boolean|nougat_separator_hl_def|(fun(item: NougatItem, ctx: nougat_bar_ctx) -> nougat_separator_hl_def)) -> nougat_separator`
 
 If `hl` is `nil` or `false`, highlight will be same as the content.
 

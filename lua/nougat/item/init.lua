@@ -8,17 +8,17 @@ local next_id = u.create_id_generator()
 
 --luacheck: push no max line length
 
----@alias nougat_item_content string|string[]|NougatItem[]|(fun(self: NougatItem, ctx: nougat_ctx):nil|string|string[]|NougatItem[])
----@alias nougat_item_hl integer|string|nougat_hl_def|(fun(self: NougatItem, ctx: nougat_ctx): integer|string|nougat_hl_def)
----@alias nougat_item_affix string[]|(fun(item: NougatItem, ctx: nougat_ctx):string)
----@alias nougat_item_hidden boolean|(fun(self: NougatItem, ctx: nougat_ctx):boolean)
+---@alias nougat_item_content string|string[]|NougatItem[]|(fun(self: NougatItem, ctx: nougat_bar_ctx):nil|string|string[]|NougatItem[])
+---@alias nougat_item_hl integer|string|nougat_hl_def|(fun(self: NougatItem, ctx: nougat_bar_ctx): integer|string|nougat_hl_def)
+---@alias nougat_item_affix string[]|(fun(item: NougatItem, ctx: nougat_bar_ctx):string)
+---@alias nougat_item_hidden boolean|(fun(self: NougatItem, ctx: nougat_bar_ctx):boolean)
 
 ---@alias nougat_item_config.cache.clear__event string|string[]
 ---@alias nougat_item_config.cache.clear__get_id (fun(info: table): integer)
 ---@alias nougat_item_config.cache.clear nougat_item_config.cache.clear__event | { [1]: nougat_item_config.cache.clear__event, [2]?: nougat_item_config.cache.clear__get_id } | { [1]: nougat_item_config.cache.clear__event, [2]?: nougat_item_config.cache.clear__get_id }[]
 
 ---@class nougat_item_config.cache
----@field get? fun(store: NougatCacheStore, ctx: nougat_ctx):table
+---@field get? fun(store: NougatCacheStore, ctx: nougat_bar_ctx):table
 ---@field scope? 'buf'|'win'|'tab'
 ---@field initial_value? table
 ---@field store? NougatCacheStore
@@ -26,7 +26,7 @@ local next_id = u.create_id_generator()
 
 ---@class nougat_item_config__nil
 ---@field init? fun(self: NougatItem): nil
----@field prepare? fun(self: NougatItem, ctx: nougat_ctx):nil
+---@field prepare? fun(self: NougatItem, ctx: nougat_bar_ctx):nil
 ---@field hidden? nougat_item_hidden
 ---@field hl? nougat_item_hl
 ---@field content? string|string[]|NougatItem[]
@@ -70,7 +70,7 @@ local next_id = u.create_id_generator()
 ---@field tabnr? integer
 
 ---@class nougat_item_config__function: nougat_item_config__nil
----@field content fun(self: NougatItem, ctx: nougat_ctx):nil|string|string[]|NougatItem[]
+---@field content fun(self: NougatItem, ctx: nougat_bar_ctx):nil|string|string[]|NougatItem[]
 ---@field config? table|table[]
 ---@field cache? nougat_item_config.cache
 
@@ -81,7 +81,7 @@ local next_id = u.create_id_generator()
 local invalidate_cache = ic.invalidate_cache
 
 ---@param item NougatItem
----@param ctx nougat_ctx
+---@param ctx nougat_bar_ctx
 local function content_function_processor(item, ctx)
   local parts = ctx.parts
   local part_idx = parts.len
@@ -365,7 +365,7 @@ end
 ---@field suffix? nougat_item_affix
 ---@field sep_right? nougat_separator[]
 ---@field hidden? nougat_item_hidden
----@field prepare? fun(self: NougatItem, ctx: nougat_ctx):nil
+---@field prepare? fun(self: NougatItem, ctx: nougat_bar_ctx):nil
 ---@field ctx table
 local Item = setmetatable({}, {
   __call = init,
@@ -385,7 +385,7 @@ function Item:_init_breakpoints(breakpoints)
   end
 end
 
----@param ctx nougat_ctx
+---@param ctx nougat_bar_ctx
 function Item:config(ctx)
   return self._config[ctx.ctx.breakpoint] or self._config
 end

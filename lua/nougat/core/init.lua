@@ -2,7 +2,13 @@ local mod = {}
 
 --luacheck: push no max line length
 
----@alias nougat_core_expression_context { ctx?: boolean|number|string|table, bufnr: integer, winid: integer, tabid: integer, is_focused: boolean }
+---@class nougat_core_expression_context
+---@field ctx? boolean|number|string|table
+---@field bufnr integer current buffer
+---@field winid integer current window
+---@field tabid integer current tab
+---@field is_focused boolean
+
 ---@alias nougat_core_click_handler fun(handler_id: integer, click_count: integer, mouse_button: string, modifiers: string, context: nougat_core_expression_context):nil
 ---@alias nougat_core_expression_fn fun(context: nougat_core_expression_context):string
 

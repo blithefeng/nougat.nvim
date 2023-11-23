@@ -51,7 +51,7 @@ local hl_transition_by_char = {
 --luacheck: push no max line length
 
 ---@alias nougat_separator_hl_def { bg?: string|number, fg?: string|number }
----@alias nougat_separator_hl nougat_separator_hl_def|(fun(item: NougatItem, ctx: nougat_ctx):nougat_separator_hl_def)
+---@alias nougat_separator_hl nougat_separator_hl_def|(fun(item: NougatItem, ctx: nougat_bar_ctx):nougat_separator_hl_def)
 ---@alias nougat_separator { content: string, hl?: nougat_separator_hl }
 
 --luacheck: pop

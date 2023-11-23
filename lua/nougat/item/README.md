@@ -21,14 +21,14 @@ If provided, the function is called after the item is initialized.
 
 ### `prepare`
 
-**Type:** `(self: NougatItem, ctx: nougat_ctx) -> nil`
+**Type:** `(self: NougatItem, ctx: nougat_bar_ctx) -> nil`
 
 If provided, the function is called before each time item is evaluated. It can be used
 to prepare data for the functions called later in the item evaluation cycle.
 
 ### `hidden`
 
-**Type:** `boolean` / `(self: NougatItem, ctx: nougat_ctx) -> boolean` / `NougatItem`
+**Type:** `boolean` / `(self: NougatItem, ctx: nougat_bar_ctx) -> boolean` / `NougatItem`
 
 Specifies if the item should be hidden.
 
@@ -36,7 +36,7 @@ If a `NougatItem` is passed, that item's `hidden` will be used instead.
 
 ### `hl`
 
-**Type:** `integer` / `string` / `nougat_hl_def` / `(self: NougatItem, ctx: nougat_ctx) -> integer|string|nougat_hl_def` / `NougatItem`
+**Type:** `integer` / `string` / `nougat_hl_def` / `(self: NougatItem, ctx: nougat_bar_ctx) -> integer|string|nougat_hl_def` / `NougatItem`
 
 Specifies the highlight for the item. Different types of `hl` are treated in the following ways:
 
@@ -62,7 +62,7 @@ If a `NougatItem` is passed, that item's `hl` will be used instead.
 
 ### `content`
 
-**Type:** `string` or `string[]` or `NougatItem[]` or `(self: NougatItem, ctx: nougat_ctx) -> nil|string|string[]|NougatItem[]` (required)
+**Type:** `string` or `string[]` or `NougatItem[]` or `(self: NougatItem, ctx: nougat_bar_ctx) -> nil|string|string[]|NougatItem[]` (required)
 
 The content of the item.
 
@@ -257,7 +257,7 @@ Associates the item with the specified tab number.
 
 **Type:** `function`
 
-_Signature:_ `(store: table<integer, table>, ctx: nougat_ctx) -> table`
+_Signature:_ `(store: table<integer, table>, ctx: nougat_bar_ctx) -> table`
 
 This is used to get the value from cache store for the current context.
 
@@ -324,7 +324,7 @@ If provided, it is called when the item is added to the bar.
 
 ### `item:cache`
 
-_Signature:_ `(ctx: nougat_ctx) -> table`
+_Signature:_ `(ctx: nougat_bar_ctx) -> table`
 
 Returns the cache for current context.
 
@@ -332,6 +332,6 @@ _Only available when `cache` option is present._
 
 ### `item:config`
 
-_Signature:_ `(ctx: nougat_ctx) -> table`
+_Signature:_ `(ctx: nougat_bar_ctx) -> table`
 
 Returns the config for the current breakpoint.

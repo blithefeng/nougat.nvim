@@ -146,7 +146,7 @@ end
 
 ---@param hl? nougat_item_hl
 ---@param item NougatItem
----@param ctx nougat_ctx
+---@param ctx nougat_bar_ctx
 local function resolve_highlight(hl, item, ctx)
   local highlight = hl
 
@@ -171,7 +171,7 @@ end
 
 ---@param affix nougat_item_affix
 ---@param item NougatItem
----@param ctx nougat_ctx
+---@param ctx nougat_bar_ctx
 ---@param breakpoint integer
 local function resolve_affix(affix, item, ctx, breakpoint)
   if type(affix) == "function" then
@@ -182,7 +182,7 @@ local function resolve_affix(affix, item, ctx, breakpoint)
 end
 
 ---@param items NougatItem[]|{ len?: integer }
----@param ctx nougat_ctx
+---@param ctx nougat_bar_ctx
 local function prepare_parts(items, ctx)
   local breakpoint = ctx.ctx.breakpoint
 
@@ -706,7 +706,7 @@ function mod.prepare_priority_parts(items, ctx)
   ctx.parts.len, ctx.hls.len = prepare_parts_from_slots(ctx.slots, ctx.parts, 0, ctx.hls, 0)
 end
 
----@param ctx nougat_ctx
+---@param ctx nougat_bar_ctx
 ---@param fallback_hl nougat_hl_def
 function mod.process_bar_highlights(ctx, fallback_hl)
   local hls = ctx.hls

@@ -167,10 +167,19 @@ function Bar:add_item(item)
 end
 
 --luacheck: push no max line length
----@alias nougat_ctx nougat_core_expression_context|{ hl: nougat_hl_def, hls: nougat_lazy_item_hl[]|{ len: integer }, parts: string[]|{ len: integer }, width: integer, slots?: any[], available_width?: integer }
+
+---@class nougat_bar_ctx: nougat_core_expression_context
+---@field ctx table
+---@field hl nougat_hl_def fallback highlight for current item
+---@field width integer width of the bar
+---@field hls nougat_lazy_item_hl[]|{ len: integer } (internal)
+---@field parts string[]|{ len: integer } (internal)
+---@field slots? any[] (internal)
+---@field available_width? integer (internal)
+
 --luacheck: pop
 
----@param ctx nougat_ctx
+---@param ctx nougat_bar_ctx
 function Bar:generate(ctx)
   ctx.ctx.breakpoint = self._get_breakpoint_index(ctx.width, self._breakpoints)
 

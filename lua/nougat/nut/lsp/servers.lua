@@ -5,7 +5,7 @@ local get_hl_name = require("nougat.util.hl").get_hl_name
 --luacheck: push no max line length
 
 ---@class nougat_nut_lsp_servers_config_config
----@field content? fun(client: lsp.Client, item: NougatItem, ctx: nougat_ctx):nil|string|string[]|{content:string,hl?:nougat_hl_def}|{content:string,hl?:nougat_hl_def}[]
+---@field content? fun(client: lsp.Client, item: NougatItem, ctx: nougat_bar_ctx):nil|string|string[]|{content:string,hl?:nougat_hl_def}|{content:string,hl?:nougat_hl_def}[]
 ---@field sep? string
 
 ---@class nougat_nut_lsp_servers_config: nougat_item_config__function
