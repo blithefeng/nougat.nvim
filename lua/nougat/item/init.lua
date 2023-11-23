@@ -13,10 +13,74 @@ local next_id = u.create_id_generator()
 ---@alias nougat_item_affix string[]|(fun(item: NougatItem, ctx: nougat_ctx):string)
 ---@alias nougat_item_hidden boolean|(fun(self: NougatItem, ctx: nougat_ctx):boolean)
 
+---@alias nougat_item_config.cache.clear__event string|string[]
+---@alias nougat_item_config.cache.clear__get_id (fun(info: table): integer)
+---@alias nougat_item_config.cache.clear nougat_item_config.cache.clear__event | { [1]: nougat_item_config.cache.clear__event, [2]?: nougat_item_config.cache.clear__get_id } | { [1]: nougat_item_config.cache.clear__event, [2]?: nougat_item_config.cache.clear__get_id }[]
+
+---@class nougat_item_config.cache
+---@field get? fun(store: NougatCacheStore, ctx: nougat_ctx):table
+---@field scope? 'buf'|'win'|'tab'
+---@field initial_value? table
+---@field store? NougatCacheStore
+---@field clear? nougat_item_config.cache.clear
+
+---@class nougat_item_config__nil
+---@field init? fun(self: NougatItem): nil
+---@field prepare? fun(self: NougatItem, ctx: nougat_ctx):nil
+---@field hidden? nougat_item_hidden
+---@field hl? nougat_item_hl
+---@field content? string|string[]|NougatItem[]
+---@field sep_left? nougat_separator|nougat_separator[]
+---@field sep_right? nougat_separator|nougat_separator[]
+---@field prefix? string|nougat_item_affix
+---@field suffix? string|nougat_item_affix
+---@field context? nougat_core_item_options_context
+---@field on_click? string|nougat_core_click_handler
+---@field priority? integer
+
+---@class nougat_item_config__core: nougat_item_config__nil
+---@field align? 'left'|'right'
+---@field leading_zero? boolean
+---@field max_width? integer
+---@field min_width? integer
+
+---@class nougat_item_config__code: nougat_item_config__core
+---@field type 'code'
+---@field content string
+
+---@class nougat_item_config__vim_expr: nougat_item_config__core
+---@field type 'vim_expr'
+---@field content string
+---@field expand? boolean
+
+---@class nougat_item_config__lua_expr: nougat_item_config__core
+---@field type 'lua_expr'
+---@field content number|string|nougat_core_expression_fn
+---@field expand? boolean
+
+---@class nougat_item_config__literal: nougat_item_config__core
+---@field type 'literal'
+---@field content boolean|number|string
+
+---@class nougat_item_config__tab_label: nougat_item_config__nil
+---@field type 'tab_label'
+---@field content number|string
+---@field close? boolean
+---@field tabnr? integer
+
+---@class nougat_item_config__function: nougat_item_config__nil
+---@field content fun(self: NougatItem, ctx: nougat_ctx):nil|string|string[]|NougatItem[]
+---@field config? table|table[]
+---@field cache? nougat_item_config.cache
+
+---@alias nougat_item_config nougat_item_config__nil|nougat_item_config__code|nougat_item_config__vim_expr|nougat_item_config__lua_expr|nougat_item_config__literal|nougat_item_config__tab_label|nougat_item_config__function
+
 --luacheck: pop
 
 local invalidate_cache = ic.invalidate_cache
 
+---@param item NougatItem
+---@param ctx nougat_ctx
 local function content_function_processor(item, ctx)
   local parts = ctx.parts
   local part_idx = parts.len
@@ -61,6 +125,9 @@ local function hl_item_processor(item, ctx)
   return type(item._hl_item.hl) == "function" and item._hl_item:hl(ctx) or item._hl_item.hl
 end
 
+---@param clear nougat_item_config.cache.clear
+---@param store NougatCacheStore
+---@param scope? 'buf'|'win'|'tab'
 local function handle_item_cache_clear(clear, store, scope)
   if type(clear) == "string" then
     -- "A"
@@ -73,6 +140,9 @@ local function handle_item_cache_clear(clear, store, scope)
 
   if type(clear[2]) == "string" then
     -- {"A", "B"}
+    ---@cast clear string[]
+
+    ---@type table<nougat_item_config.cache.clear__get_id, string[]>
     local event_by_get_id = {}
     for i = 1, #clear do
       local event = clear[i]
@@ -91,18 +161,23 @@ local function handle_item_cache_clear(clear, store, scope)
   elseif type(clear[2]) == "function" then
     -- {"C", get_id}
     -- {{"D", "E"}, get_id}
-    local get_id = clear[2]
+
+    local get_id = clear[2] --[[@as nougat_item_config.cache.clear__get_id]]
     u.on_event(clear[1], function(info)
       store:clear(get_id(info))
     end)
   elseif type(clear[2]) == "table" then
     -- {{"A", "B"}, {"C", get_id}, {{"D", "E"}, get_id}}
+    ---@cast clear table[]
+
     for i = 1, #clear do
       handle_item_cache_clear(clear[i], store, scope)
     end
   end
 end
 
+---@param class NougatItem
+---@param config nougat_item_config
 local function init(class, config)
   ---@class NougatItem
   local self = setmetatable({}, { __index = class })
@@ -110,6 +185,10 @@ local function init(class, config)
   self.id = next_id()
 
   self.hl = config.hl
+  if type(self.hl) == "table" and self.hl.id then
+    self._hl_item = self.hl --[[@as NougatItem]]
+    self.hl = hl_item_processor
+  end
 
   self.sep_left = iu.normalize_sep(-1, config.sep_left)
   self.prefix = type(config.prefix) == "string" and { config.prefix } or config.prefix
@@ -120,13 +199,14 @@ local function init(class, config)
 
   self.hidden = config.hidden
   if type(self.hidden) == "table" then
-    self._item_hidden = self.hidden
+    self._item_hidden = self.hidden --[[@as NougatItem]]
     self.hidden = item_hidden_processor[type(self._item_hidden.hidden)]
   end
 
   self.priority = config.priority
 
   if config.type == "code" then
+    ---@cast config nougat_item_config__code
     self.content = core.code(config.content, {
       align = config.align,
       leading_zero = config.leading_zero,
@@ -134,6 +214,7 @@ local function init(class, config)
       max_width = config.max_width,
     })
   elseif config.type == "vim_expr" then
+    ---@cast config nougat_item_config__vim_expr
     self.content = core.expression(config.content, {
       align = config.align,
       expand = config.expand,
@@ -143,6 +224,7 @@ local function init(class, config)
       max_width = config.max_width,
     })
   elseif config.type == "lua_expr" then
+    ---@cast config nougat_item_config__lua_expr
     self.content = core.expression(config.content, {
       id = self.id .. "_expression_fn",
       align = config.align,
@@ -153,6 +235,7 @@ local function init(class, config)
       max_width = config.max_width,
     })
   elseif config.type == "literal" then
+    ---@cast config nougat_item_config__literal
     local has_opts = config.align or config.leading_zero or config.min_width or config.max_width
     self.content = core.literal(config.content, has_opts and {
       align = config.align,
@@ -161,15 +244,18 @@ local function init(class, config)
       max_width = config.max_width,
     } or nil)
   elseif config.type == "tab_label" then
+    ---@cast config nougat_item_config__tab_label
     self.content = core.label(config.content, {
       close = config.close,
       tabnr = config.tabnr,
     })
   else
+    ---@cast config nougat_item_config__nil|nougat_item_config__function
     self.content = config.content
   end
 
   if config.cache then
+    ---@type nougat_item_config.cache
     local cache = config.cache
 
     if cache.store then
@@ -197,6 +283,7 @@ local function init(class, config)
       handle_item_cache_clear(cache.clear, self._cache_store, cache.scope)
     end
 
+    ---@diagnostic disable: undefined-field
     if cache.invalidate then
       vim.deprecate("NougatItem option cache.invalidate", "cache.clear", "0.4.0", "nougat.nvim")
 
@@ -214,6 +301,7 @@ local function init(class, config)
         end)
       end
     end
+    ---@diagnostic enable: undefined-field
   end
 
   if type(self.content) == "table" then
@@ -252,11 +340,6 @@ local function init(class, config)
 
   if type(self.content) == "table" then
     self.content.next = u.get_next_list_item
-  end
-
-  if type(self.hl) == "table" and self.hl.id then
-    self._hl_item = self.hl
-    self.hl = hl_item_processor
   end
 
   self._config = config.config or {}
@@ -298,11 +381,12 @@ function Item:_init_breakpoints(breakpoints)
   end
 end
 
+---@param ctx nougat_ctx
 function Item:config(ctx)
   return self._config[ctx.ctx.breakpoint] or self._config
 end
 
----@alias NougatItem.constructor fun(config: table): NougatItem
+---@alias NougatItem.constructor fun(config: nougat_item_config): NougatItem
 ---@type NougatItem|NougatItem.constructor
 local NougatItem = Item
 

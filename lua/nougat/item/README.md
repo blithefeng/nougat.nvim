@@ -128,8 +128,9 @@ bar:add_item({
 
 **Type:** `boolean|number|string|table` or `(ctx: nougat_core_expression_context) -> nougat_core_expression_context`
 
-If provided, it will be attached to the `ctx` parameter of the `on_click` option as
-`ctx.ctx`.
+If provided, it will be attached to the `ctx` parameter as `ctx.ctx` of:
+- the `on_click` option
+- the `content` option, if `type` is `'lua_expr'` and `content` is a `function`
 
 If `context` is function, it receives the `nougat_core_expression_context` table as `ctx` parameter and it should
 return the same table, storing `boolean|number|string|table` as `ctx.ctx`.
@@ -197,7 +198,7 @@ With specific `type`, item can:
 | `'vim_expr'`  | `number` / `string`                                                     | `string` is treated as vimscript                                  |
 | `'lua_expr'`  | `number` / `string` / `(ctx: nougat_core_expression_context) -> string` | for `function`, the `ctx` parameter is same as `on_click` option. |
 | `'literal'`   | `boolean` / `number` / `string`                                         |                                                                   |
-| `'tag_label'` | `number` / `string`                                                     |                                                                   |
+| `'tab_label'` | `number` / `string`                                                     |                                                                   |
 
 ### `align`
 
