@@ -13,6 +13,17 @@ local function run_hook(name, value, cache, bufnr)
   end
 end
 
+local function get_option_getter(name)
+  return function(bufnr)
+    local value = store[bufnr][name]
+    if value == nil then
+      value = vim.bo[bufnr][name]
+      store[bufnr][name] = value
+    end
+    return value
+  end
+end
+
 local get = {
   filename = function(bufnr)
     local filename = store[bufnr].filename
@@ -30,6 +41,9 @@ local get = {
     end
     return filetype
   end,
+  modifiable = get_option_getter("modifiable"),
+  modified = get_option_getter("modified"),
+  readonly = get_option_getter("readonly"),
 }
 
 local subscribe = {
@@ -57,6 +71,18 @@ local subscribe = {
       run_hook("filetype.change", filetype, cache, bufnr)
     end)
   end,
+  modifiable = function()
+    hooks["modifiable.change"] = {}
+
+    on_event("OptionSet modifiable", function()
+      local bufnr, modifiable = vim.api.nvim_get_current_buf(), vim.v.option_new
+      local cache = store[bufnr]
+
+      cache.modifiable = modifiable
+
+      run_hook("modifiable.change", modifiable, cache, bufnr)
+    end)
+  end,
   modified = function()
     hooks["modified.change"] = {}
 
@@ -69,6 +95,18 @@ local subscribe = {
       cache.modified = vim.api.nvim_buf_get_option(bufnr, "modified")
 
       run_hook("modified.change", cache.modified, cache, bufnr)
+    end)
+  end,
+  readonly = function()
+    hooks["readonly.change"] = {}
+
+    on_event("OptionSet readonly", function()
+      local bufnr, readonly = vim.api.nvim_get_current_buf(), vim.v.option_new
+      local cache = store[bufnr]
+
+      cache.readonly = readonly
+
+      run_hook("readonly.change", readonly, cache, bufnr)
     end)
   end,
   gitstatus = function()
@@ -142,7 +180,7 @@ end
 ---@param callback fun(value: any, cache: table, bufnr: integer)
 function mod.on(event, callback)
   if not hooks[event] then
-    return
+    error("unknown event")
   end
 
   hooks[event][#hooks[event] + 1] = callback
