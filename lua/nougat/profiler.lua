@@ -1,139 +1,219 @@
+local Bar = require("nougat.bar")
+local util = require("nougat.util")
+
 local mod = {}
 
-local result = {
+local current_bar_type, current_bar_id
+
+local function instrument_bar_generate(result_store)
+  local bar_generate = Bar.generate
+  Bar.generate = function(bar, ctx)
+    current_bar_type = bar.type
+    current_bar_id = bar.id
+
+    if not result_store[current_bar_type][current_bar_id] then
+      result_store[current_bar_type][current_bar_id] = {}
+    end
+    local store = result_store[current_bar_type][current_bar_id]
+
+    local start_time = vim.loop.hrtime()
+
+    local ret = bar_generate(bar, ctx)
+
+    local end_time = vim.loop.hrtime()
+
+    table.insert(store, end_time - start_time)
+
+    return ret
+  end
+
+  return function()
+    Bar.generate = bar_generate
+  end
+end
+
+local function instrument_prepare(name, result_store)
+  local prepare = util[name]
+
+  util[name] = function(items, ctx)
+    if not result_store[current_bar_type][current_bar_id].item then
+      result_store[current_bar_type][current_bar_id].item = {}
+    end
+    local store = result_store[current_bar_type][current_bar_id].item
+
+    local next = items.next
+    local start_time, item_id
+    function items:next()
+      if start_time and item_id then
+        if not store[item_id] then
+          store[item_id] = {}
+        end
+        table.insert(store[item_id], vim.loop.hrtime() - start_time)
+      end
+      start_time = vim.loop.hrtime()
+      local item = next(self)
+      item_id = item and item.id
+      return item
+    end
+    prepare(items, ctx)
+    items.next = next
+  end
+
+  return function()
+    util[name] = prepare
+  end
+end
+
+---@param times number[]
+local function crunch_result(times)
+  table.sort(times)
+
+  local redraw_count = #times
+
+  local min_time_ms = times[1] / 1e6
+  local max_time_ms = times[redraw_count] / 1e6
+
+  local mid_idx = math.ceil(redraw_count / 2)
+  local med_time_ms = (redraw_count % 2 == 0 and (times[mid_idx] + times[mid_idx + 1]) / 2 or times[mid_idx]) / 1e6
+
+  local total_time_ns = 0
+  for _, time_ns in ipairs(times) do
+    total_time_ns = total_time_ns + time_ns
+  end
+  local total_time_ms = total_time_ns / 1e6
+
+  return {
+    min_time_ms = min_time_ms,
+    med_time_ms = med_time_ms,
+    max_time_ms = max_time_ms,
+    redraw_count = redraw_count,
+    total_time_ms = total_time_ms,
+  }
+end
+
+local function display_result(type, result, bar_type, bar_id)
+  --luacheck: push no max line length
+  local data = crunch_result(result[bar_type][bar_id])
+  print(
+    string.format(
+      "%s(%10s: %2s) redraw(total: %5s per_ms: %12.6f) time(total: %12.6f min: %8.6f med: %8.6f max: %8.6f per_redraw: %8.6f)",
+      type,
+      bar_type,
+      bar_id,
+      data.redraw_count,
+      data.redraw_count / data.total_time_ms,
+      data.total_time_ms,
+      data.min_time_ms,
+      data.med_time_ms,
+      data.max_time_ms,
+      data.total_time_ms / data.redraw_count
+    )
+  )
+  for item_id, item_result in pairs(result[current_bar_type][current_bar_id].item) do
+    local item_data = crunch_result(item_result)
+    print(
+      string.format(
+        "  %s(%8s: %2s) redraw(%12s per_ms: %12.6f) time(total: %12.6f min: %8.6f med: %8.6f max: %8.6f per_redraw: %8.6f)",
+        type,
+        "item",
+        item_id,
+        " ",
+        item_data.redraw_count / item_data.total_time_ms,
+        item_data.total_time_ms,
+        item_data.min_time_ms,
+        item_data.med_time_ms,
+        item_data.max_time_ms,
+        item_data.total_time_ms / item_data.redraw_count
+      )
+    )
+  end
+  --luacheck: pop
+end
+
+local bench_result = {
   statusline = {},
   tabline = {},
   winbar = {},
 }
 
-local Bar = require("nougat.bar")
-local bar_generate = Bar.generate
-
-local function bar_generate_profiler(bar, ctx)
-  local start_time = vim.loop.hrtime()
-
-  local ret = bar_generate(bar, ctx)
-
-  local end_time = vim.loop.hrtime()
-
-  if not result[bar.type][bar.id] then
-    result[bar.type][bar.id] = {}
-  end
-
-  table.insert(result[bar.type][bar.id], end_time - start_time)
-
-  return ret
-end
-
 function mod.bench()
   local redraw_count = 10000
 
-  local current_bar_generate = Bar.generate
-  Bar.generate = bar_generate
-
   for _, bar_type in ipairs({ "statusline", "tabline", "winbar" }) do
+    bench_result[bar_type] = {}
+
+    current_bar_type = bar_type
+
+    local restore_bar_generate = instrument_bar_generate(bench_result)
+
     local value = vim.o[bar_type]
     if #value > 0 then
-      local bar = {}
-
       local id = tonumber(string.match(value, "nougat_core_generator_fn%((.+)%)"))
+      current_bar_id = id
+
+      if not bench_result[current_bar_type][current_bar_id] then
+        bench_result[current_bar_type][current_bar_id] = {}
+      end
+
+      local restore_prepare_parts = instrument_prepare("prepare_parts", bench_result)
+      local restore_prepare_slots = instrument_prepare("prepare_slots", bench_result)
 
       for _ = 1, redraw_count do
-        local start_time = vim.loop.hrtime()
-
         vim.g.statusline_winid = vim.api.nvim_get_current_win()
         _G.nougat_core_generator_fn(id)
         vim.g.statusline_winid = nil
-
-        local end_time = vim.loop.hrtime()
-
-        table.insert(bar, end_time - start_time)
       end
 
-      table.sort(bar)
+      restore_prepare_parts()
+      restore_prepare_slots()
 
-      local min_time_ms = bar[1] / 1e6
-      local max_time_ms = bar[redraw_count] / 1e6
-
-      local mid_idx = math.ceil(redraw_count / 2)
-      local med_time_ms = (redraw_count % 2 == 0 and (bar[mid_idx] + bar[mid_idx + 1]) / 2 or bar[mid_idx]) / 1e6
-
-      local total_time_ns = 0
-      for _, time_ns in ipairs(bar) do
-        total_time_ns = total_time_ns + time_ns
-      end
-      local total_time_ms = total_time_ns / 1e6
-
-      --luacheck: push no max line length
-      print(
-        string.format(
-          "bench(%10s: %2s) redraw(total: %5s per_ms: %9.6f) time(total: %12.6f min: %8.6f med: %8.6f max: %8.6f per_redraw: %8.6f)",
-          bar_type,
-          id,
-          redraw_count,
-          redraw_count / total_time_ms,
-          total_time_ms,
-          min_time_ms,
-          med_time_ms,
-          max_time_ms,
-          total_time_ms / redraw_count
-        )
-      )
-      --luacheck: pop
+      display_result("bench", bench_result, current_bar_type, current_bar_id)
     end
-  end
 
-  Bar.generate = current_bar_generate
+    restore_bar_generate()
+  end
 end
 
+local profile_result = {
+  statusline = {},
+  tabline = {},
+  winbar = {},
+  _resets = {},
+}
+
 function mod.start()
-  Bar.generate = bar_generate_profiler
-  result.statusline = {}
-  result.tabline = {}
-  result.winbar = {}
+  profile_result.statusline = {}
+  profile_result.tabline = {}
+  profile_result.winbar = {}
+
+  table.insert(profile_result._resets, instrument_bar_generate(profile_result))
+  table.insert(profile_result._resets, instrument_prepare("prepare_parts", profile_result))
+  table.insert(profile_result._resets, instrument_prepare("prepare_slots", profile_result))
 end
 
 function mod.stop()
-  Bar.generate = bar_generate
-end
+  for _, reset in ipairs(profile_result._resets) do
+    reset()
+  end
+  profile_result._resets = {}
 
-function mod.result()
   for _, bar_type in ipairs({ "statusline", "tabline", "winbar" }) do
-    for id, bar in pairs(result[bar_type]) do
-      table.sort(bar)
-
-      local redraw_count = #bar
-
-      local min_time_ms = bar[1] / 1e6
-      local max_time_ms = bar[redraw_count] / 1e6
-
-      local mid_idx = math.ceil(redraw_count / 2)
-      local med_time_ms = (redraw_count % 2 == 0 and (bar[mid_idx] + bar[mid_idx + 1]) / 2 or bar[mid_idx]) / 1e6
-
-      local total_time_ns = 0
-      for _, time_ns in ipairs(bar) do
-        total_time_ns = total_time_ns + time_ns
-      end
-      local total_time_ms = total_time_ns / 1e6
-
-      --luacheck: push no max line length
-      print(
-        string.format(
-          "%10s(id: %2s) redraw(total: %5s per_ms: %9.6f) time(total: %12.6f min: %8.6f med: %8.6f max: %8.6f per_redraw: %8.6f)",
-          bar_type,
-          id,
-          redraw_count,
-          redraw_count / total_time_ms,
-          total_time_ms,
-          min_time_ms,
-          med_time_ms,
-          max_time_ms,
-          total_time_ms / redraw_count
-        )
-      )
-      --luacheck: pop
+    for bar_id in pairs(profile_result[bar_type]) do
+      display_result("profile", profile_result, bar_type, bar_id)
     end
   end
+end
+
+---@param object_type 'bar'|'item'
+---@param id integer
+function mod.inspect(object_type, id)
+  local object = util._get_by_id(object_type, id)
+  local name = string.format("%s_%s", object_type, id)
+  mod[name] = function()
+    mod[name] = nil
+    return object
+  end
+  print(string.format('[Nougat] to get %s(%s) run `require("nougat.profiler").%s()`', object_type, id, name))
 end
 
 return mod

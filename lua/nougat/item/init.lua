@@ -4,8 +4,6 @@ local ic = require("nougat.item.cache")
 local create_store = require("nougat.cache").create_store
 local u = require("nougat.util")
 
-local next_id = u.create_id_generator()
-
 --luacheck: push no max line length
 
 ---@alias nougat_item_content string|string[]|NougatItem[]|(fun(self: NougatItem, ctx: nougat_bar_ctx):nil|string|string[]|NougatItem[])
@@ -127,13 +125,15 @@ local function item_function_processor(item, ctx)
   return type(item._item_hl.hl) == "function" and item._item_hl:hl(ctx) or item._item_hl.hl
 end
 
+local get_next_id = u.create_id_generator("item")
+
 ---@param class NougatItem
 ---@param config nougat_item_config
 local function init(class, config)
   ---@class NougatItem
   local self = setmetatable({}, { __index = class })
 
-  self.id = next_id()
+  self.id = get_next_id(self)
 
   self.ctx = config.ctx or {}
 
