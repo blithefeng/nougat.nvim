@@ -109,7 +109,7 @@ local function display_result(type, result, bar_type, bar_id)
       data.total_time_ms / data.redraw_count
     )
   )
-  for item_id, item_result in pairs(result[current_bar_type][current_bar_id].item) do
+  for item_id, item_result in pairs(result[bar_type][bar_id].item) do
     local item_data = crunch_result(item_result)
     print(
       string.format(
