@@ -1,6 +1,6 @@
 # NougatItem
 
-_Signature:_ `(options?: table) -> NougatItem`
+_Signature:_ `(config?: nougat_item_config) -> NougatItem`
 
 Each `NougatBar` is made of a bunch of `NougatItem`.
 
@@ -8,9 +8,11 @@ Each `NougatBar` is made of a bunch of `NougatItem`.
 local Item = require("nougat.item")
 ```
 
-## Parameter: `options`
+## Parameter: `config`
 
-> **Note**:
+**Type:** `nougat_item_config`
+
+> [!NOTE]
 > **Common Options**
 
 ### `init`
@@ -129,6 +131,7 @@ bar:add_item({
 **Type:** `boolean|number|string|table` or `(ctx: nougat_core_expression_context) -> nougat_core_expression_context`
 
 If provided, it will be attached to the `ctx` parameter as `ctx.ctx` of:
+
 - the `on_click` option
 - the `content` option, if `type` is `'lua_expr'` and `content` is a `function`
 
@@ -180,7 +183,73 @@ If `on_click` is a `string`, it is treated as the name of a vimscript function. 
 This stores item specific configuration. Like `sep_left` / `sep_right` / `prefix` / `suffix`,
 `config` also supports breakpoints.
 
-> **Note**:
+### `ctx`
+
+**Type:** `table`
+
+This is a place to store whatever you want with the item.
+
+### `priority`
+
+**Type:** `integer`
+
+If `priority` is present for any item, the `NougatBar` considers item priority during generation.
+
+Items with higher priority will be evaluated first. And depending on the available width, items with
+lower priority will automatically be hidden from the bar.
+
+### `cache`
+
+#### `cache.name`
+
+**Type:** `string`
+
+Name of the cache store. If name is provided, the same cache store
+will be used for all items with the same `cache.name`.
+
+#### `cache.get`
+
+**Type:** `function`
+
+_Signature:_ `(store: table<integer, table>, ctx: nougat_bar_ctx) -> table`
+
+This is used to get the value from cache store for the current context.
+
+#### `cache.initial_value`
+
+**Type:** `table`
+
+If cache store is created by `NougatItem`, this will be used as initial value for the cache.
+
+If `initial_value` is given, `NougatItem` will not automatically cache the item content.
+
+#### `cache.scope`
+
+**Type:** `'buf'|'win'|'tab'`
+
+If `cache.scope` is present and `cache.store` is missing, it will be used create cache store.
+
+It will also be used in `cache.clear` to make default `get_id` for autocmd event.
+
+#### `cache.store`
+
+**Type:** `table<integer, table>`
+
+If cache store is given, `NougatItem` will not automatically cache the item content.
+
+If it is missing, `NougatItem` will create a cache store using `cache.scope` and
+automatically cache the item content.
+
+#### `cache.clear`
+
+**Type:** `event` / `{ [1]: event, [2]?: get_id }` / `{ [1]: event, [2]?: get_id }[]`
+
+where:
+
+- `event` is `string` or `string[]` (name for autocmd event)
+- `get_id` is `(info: table) -> integer` (used to extract id from autocmd event)
+
+> [!NOTE]
 > **Type-specific Options**
 
 ### `type`
@@ -251,72 +320,7 @@ _Accepted for `type`:_ `'tab_label'`
 
 Associates the item with the specified tab number.
 
-### `cache`
-
-#### `cache.name`
-
-**Type:** `string`
-
-Name of the cache store. If name is provided, the same cache store
-will be used for all items with the same `cache.name`.
-
-#### `cache.get`
-
-**Type:** `function`
-
-_Signature:_ `(store: table<integer, table>, ctx: nougat_bar_ctx) -> table`
-
-This is used to get the value from cache store for the current context.
-
-#### `cache.initial_value`
-
-**Type:** `table`
-
-If cache store is created by `NougatItem`, this will be used as initial value for the cache.
-
-If `initial_value` is given, `NougatItem` will not automatically cache the item content.
-
-#### `cache.scope`
-
-**Type:** `'buf'|'win'|'tab'`
-
-If `cache.scope` is present and `cache.store` is missing, it will be used create cache store.
-
-It will also be used in `cache.clear` to make default `get_id` for autocmd event. 
-
-#### `cache.store`
-
-**Type:** `table<integer, table>`
-
-If cache store is given, `NougatItem` will not automatically cache the item content.
-
-If it is missing, `NougatItem` will create a cache store using `cache.scope` and
-automatically cache the item content.
-
-#### `cache.clear`
-
-**Type:** `event` / `{ [1]: event, [2]?: get_id }` / `{ [1]: event, [2]?: get_id }[]`
-
-where:
-- `event` is `string` or `string[]` (name for autocmd event)
-- `get_id` is `(info: table) -> integer` (used to extract id from autocmd event)
-
-### `priority`
-
-**Type:** `integer`
-
-If `priority` is present for any item, the `NougatBar` considers item priority during generation.
-
-Items with higher priority will be evaluated first. And depending on the available width, items with
-lower priority will automatically be hidden from the bar.
-
-### `ctx`
-
-**Type:** `table`
-
-This is a place to store whatever you want with the item.
-
-> **Note**:
+> [!NOTE]
 > **Advance Options**
 
 ### `on_init_breakpoints`
