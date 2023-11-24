@@ -79,13 +79,11 @@ local next_id = u.create_id_generator()
 
 --luacheck: pop
 
-local invalidate_cache = ic.invalidate_cache
-
 local o_clickable_parts = { len = 0 }
 
 ---@param item NougatItem
 ---@param ctx nougat_bar_ctx
-local function clickable_function_content(item, ctx)
+local function clickable_fn_content_processor(item, ctx)
   local part_idx = core.add_clickable("", {
     id = item._on_click_id,
     context = item._on_click_context or item,
@@ -98,7 +96,7 @@ local function clickable_function_content(item, ctx)
 
   local ctx_parts = ctx.parts
   ctx.parts = o_clickable_parts
-  local content = item:_click_fn_content(ctx) or ""
+  local content = item:_clickable_fn_content(ctx) or ""
   ctx.parts = ctx_parts
 
   if #content > 0 then
@@ -125,59 +123,8 @@ local item_hidden_processor = {
   end,
 }
 
-local function hl_item_processor(item, ctx)
-  return type(item._hl_item.hl) == "function" and item._hl_item:hl(ctx) or item._hl_item.hl
-end
-
----@param clear nougat_item_config.cache.clear
----@param store NougatCacheStore
----@param scope? 'buf'|'win'|'tab'
-local function handle_item_cache_clear(clear, store, scope)
-  if type(clear) == "string" then
-    -- "A"
-    return handle_item_cache_clear({ clear }, store, scope)
-  end
-
-  if type(clear) ~= "table" then
-    error("unexpected item.cache.clear type: " .. type(clear))
-  end
-
-  if type(clear[2]) == "string" then
-    -- {"A", "B"}
-    ---@cast clear string[]
-
-    ---@type table<nougat_item_config.cache.clear__get_id, string[]>
-    local event_by_get_id = {}
-    for i = 1, #clear do
-      local event = clear[i]
-      local get_id = ic.get_invalidation_id_getter(event, scope)
-      if event_by_get_id[get_id] then
-        table.insert(event_by_get_id[get_id], event)
-      else
-        event_by_get_id[get_id] = { event }
-      end
-      for get_id_fn, events in pairs(event_by_get_id) do
-        u.on_event(events, function(info)
-          store:clear(get_id_fn(info))
-        end)
-      end
-    end
-  elseif type(clear[2]) == "function" then
-    -- {"C", get_id}
-    -- {{"D", "E"}, get_id}
-
-    local get_id = clear[2] --[[@as nougat_item_config.cache.clear__get_id]]
-    u.on_event(clear[1], function(info)
-      store:clear(get_id(info))
-    end)
-  elseif type(clear[2]) == "table" then
-    -- {{"A", "B"}, {"C", get_id}, {{"D", "E"}, get_id}}
-    ---@cast clear table[]
-
-    for i = 1, #clear do
-      handle_item_cache_clear(clear[i], store, scope)
-    end
-  end
+local function item_function_processor(item, ctx)
+  return type(item._item_hl.hl) == "function" and item._item_hl:hl(ctx) or item._item_hl.hl
 end
 
 ---@param class NougatItem
@@ -192,8 +139,8 @@ local function init(class, config)
 
   self.hl = config.hl
   if type(self.hl) == "table" and self.hl.id then
-    self._hl_item = self.hl --[[@as NougatItem]]
-    self.hl = hl_item_processor
+    self._item_hl = self.hl --[[@as NougatItem]]
+    self.hl = item_function_processor
   end
 
   self.sep_left = iu.normalize_sep(-1, config.sep_left)
@@ -262,11 +209,11 @@ local function init(class, config)
 
   if config.on_click then
     if type(self.content) == "function" then
-      self._click_fn_content = self.content
+      self._clickable_fn_content = self.content
       self._on_click = config.on_click
       self._on_click_id = self.id .. "_click_handler"
       self._on_click_context = config.context
-      self.content = clickable_function_content
+      self.content = clickable_fn_content_processor
     else
       ---@diagnostic disable-next-line: param-type-mismatch
       self.content = core.clickable(self.content, {
@@ -298,12 +245,12 @@ local function init(class, config)
 
     self._cache_type = (cache.store or cache.initial_value) and "manual" or "auto"
     if self._cache_type == "auto" and type(self.content) == "function" then
-      self._get_content = self.content
-      self.content = ic.auto_cached_content
+      self._cached_fn_content = self.content
+      self.content = ic.cached_fn_content_processor
     end
 
     if cache.clear then
-      handle_item_cache_clear(cache.clear, self._cache_store, cache.scope)
+      ic.process_item_cache_clear(cache.clear, self._cache_store, cache.scope)
     end
 
     ---@diagnostic disable: undefined-field
@@ -313,14 +260,14 @@ local function init(class, config)
       if type(cache.invalidate) == "string" then
         local get_id = ic.get_invalidation_id_getter(cache.invalidate, cache.scope)
         u.on_event(cache.invalidate, function(info)
-          invalidate_cache(self._cache_store, get_id, info)
+          self._cache_store:clear(get_id(info))
         end)
       elseif type(cache.invalidate) == "table" then
         assert(type(cache.invalidate[1]) == "string", "unexpected cache.invalidate[1], expected string")
         local get_id = cache.invalidate[2]
         assert(type(get_id) == "function", "unexpected cache.invalidate[2], expected function")
         u.on_event(cache.invalidate[1], function(info)
-          invalidate_cache(self._cache_store, get_id, info)
+          self._cache_store:clear(get_id(info))
         end)
       end
     end

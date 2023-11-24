@@ -1,3 +1,5 @@
+local on_event = require("nougat.util.on_event")
+
 local cache_getter = {
   buf = function(item, ctx)
     return item._cache_store[ctx.bufnr][ctx.ctx.breakpoint]
@@ -17,24 +19,12 @@ local mod = {
   cache_getter = cache_getter,
 }
 
-function mod.auto_cached_content(item, ctx)
+function mod.cached_fn_content_processor(item, ctx)
   local c = item:cache(ctx)
   if not c._v then
-    c._v = item:_get_content(ctx)
+    c._v = item:_cached_fn_content(ctx)
   end
   return c._v
-end
-
----@param store table<integer, any>
----@param get_id fun(info: table): integer
----@param info table
-function mod.invalidate_cache(store, get_id, info)
-  local cache = store[get_id(info)]
-  if cache then
-    for key in pairs(cache) do
-      cache[key] = nil
-    end
-  end
 end
 
 ---@type table<string, fun(info: table): integer>
@@ -64,5 +54,58 @@ function mod.get_invalidation_id_getter(event, scope)
   end
   error("auto invalidation not supported for event: " .. event)
 end
+
+---@param clear nougat_item_config.cache.clear
+---@param store NougatCacheStore
+---@param scope? 'buf'|'win'|'tab'
+local function process_item_cache_clear(clear, store, scope)
+  if type(clear) == "string" then
+    -- "A"
+    return process_item_cache_clear({ clear }, store, scope)
+  end
+
+  if type(clear) ~= "table" then
+    error("unexpected item.cache.clear type: " .. type(clear))
+  end
+
+  if type(clear[2]) == "string" then
+    -- {"A", "B"}
+    ---@cast clear string[]
+
+    ---@type table<nougat_item_config.cache.clear__get_id, string[]>
+    local event_by_get_id = {}
+    for i = 1, #clear do
+      local event = clear[i]
+      local get_id = mod.get_invalidation_id_getter(event, scope)
+      if event_by_get_id[get_id] then
+        table.insert(event_by_get_id[get_id], event)
+      else
+        event_by_get_id[get_id] = { event }
+      end
+      for get_id_fn, events in pairs(event_by_get_id) do
+        on_event(events, function(info)
+          store:clear(get_id_fn(info))
+        end)
+      end
+    end
+  elseif type(clear[2]) == "function" then
+    -- {"C", get_id}
+    -- {{"D", "E"}, get_id}
+
+    local get_id = clear[2] --[[@as nougat_item_config.cache.clear__get_id]]
+    on_event(clear[1], function(info)
+      store:clear(get_id(info))
+    end)
+  elseif type(clear[2]) == "table" then
+    -- {{"A", "B"}, {"C", get_id}, {{"D", "E"}, get_id}}
+    ---@cast clear table[]
+
+    for i = 1, #clear do
+      process_item_cache_clear(clear[i], store, scope)
+    end
+  end
+end
+
+mod.process_item_cache_clear = process_item_cache_clear
 
 return mod
