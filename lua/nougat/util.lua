@@ -42,7 +42,7 @@ local object_by_id = {}
 ---@param type string
 ---@return (fun(object: table):integer) get_next_id
 function mod.create_id_generator(type)
-  object_by_id[type] = {}
+  object_by_id[type] = setmetatable({}, { __mode = "v" })
   local id = 0
   return function(object)
     id = id + 1
