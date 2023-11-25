@@ -276,6 +276,7 @@ local function init(class, config)
 
   if type(self.content) == "table" then
     self.content.len = #self.content
+    self.content.next = u.get_next_list_item
 
     if self.content[1] and self.content[1].id then
       -- NougatItem[]
@@ -291,13 +292,7 @@ local function init(class, config)
     end
   end
 
-  if type(self.content) == "table" then
-    self.content.next = u.get_next_list_item
-  end
-
   self._config = config.config or {}
-
-  self._on_init_breakpoints = config.on_init_breakpoints
 
   if config.init then
     config.init(self)
@@ -330,8 +325,10 @@ function Item:_init_breakpoints(breakpoints)
   iu.prepare_property_breakpoints(self, "suffix", breakpoints)
   iu.prepare_property_breakpoints(self, "sep_right", breakpoints)
 
-  if self._on_init_breakpoints then
-    self:_on_init_breakpoints(breakpoints)
+  if type(self.content) == "table" and self.content[1] and self.content[1].id then
+    for idx = 1, self.content.len do
+      self.content[idx]:_init_breakpoints(breakpoints)
+    end
   end
 end
 

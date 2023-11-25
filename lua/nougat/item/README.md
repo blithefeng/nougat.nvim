@@ -320,17 +320,6 @@ _Accepted for `type`:_ `'tab_label'`
 
 Associates the item with the specified tab number.
 
-> [!NOTE]
-> **Advance Options**
-
-### `on_init_breakpoints`
-
-**Type:** `(self: NougatItem, breakpoints: integer[]) -> nil`
-
-Used to prepare item's internals for the bar's breakpoints.
-
-If provided, it is called when the item is added to the bar.
-
 ## Methods
 
 ### `item:cache`
