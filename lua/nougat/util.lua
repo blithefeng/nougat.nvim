@@ -194,7 +194,7 @@ end
 
 ---@param items NougatItem[]|{ len?: integer }
 ---@param ctx nougat_bar_ctx
-local function prepare_parts(items, ctx)
+function mod.prepare_parts(items, ctx)
   local breakpoint = ctx.ctx.breakpoint
 
   local hls, parts = ctx.hls, ctx.parts
@@ -299,7 +299,7 @@ local function prepare_parts(items, ctx)
               end
 
               ---@cast content NougatItem[]
-              prepare_parts(content, ctx)
+              mod.prepare_parts(content, ctx)
 
               if hl_idx ~= hls.len then
                 local total_child_hls = hls.len - hl_idx
@@ -423,7 +423,7 @@ end
 
 local o_eval_stl_opts = {}
 
-local function prepare_slots(items, ctx)
+function mod.prepare_slots(items, ctx)
   local available_width = ctx.available_width
 
   local initial_available_width = available_width
@@ -616,7 +616,7 @@ local function prepare_slots(items, ctx)
           ctx.slots = nested_slots
 
           ---@cast nested_items NougatItem[]
-          prepare_slots(nested_items, ctx)
+          mod.prepare_slots(nested_items, ctx)
 
           if ctx.available_width == available_width then
             should_skip_slot = true
@@ -716,7 +716,7 @@ end
 
 function mod.prepare_priority_parts(items, ctx)
   local parts = ctx.parts
-  prepare_slots(items, ctx)
+  mod.prepare_slots(items, ctx)
   parts.len, ctx.hls.len = prepare_parts_from_slots(ctx.slots, parts, 0, ctx.hls, 0)
   ctx.parts = parts
 end
@@ -806,9 +806,6 @@ function mod.process_bar_highlights(ctx, fallback_hl)
     end
   end
 end
-
-mod.prepare_parts = prepare_parts
-mod.prepare_slots = prepare_slots
 
 mod.get_next_list_item = get_next_list_item
 
