@@ -207,6 +207,9 @@ end
 ---@param object_type 'bar'|'item'
 ---@param id integer
 function mod.inspect(object_type, id)
+  if not id then
+    error("missing id")
+  end
   local object = util._get_by_id(object_type, id)
   local name = string.format("%s_%s", object_type, id)
   mod[name] = function()

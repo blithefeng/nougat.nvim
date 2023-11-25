@@ -107,6 +107,10 @@ Separator that goes between two `NougatItem`s.
 
 **[Check Detailed Documentation for `nougat.cache`](lua/nougat/cache)**
 
+## :bar_chart: Profiler
+
+The built-in profiler can be used with the `:Nougat profile` command.
+
 ---
 
 ## :notebook: Links
