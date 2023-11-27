@@ -1,6 +1,8 @@
 local Bar = require("nougat.bar")
 local util = require("nougat.util")
 
+local bar_by_id = {}
+
 local mod = {}
 
 local current_bar_type, current_bar_id
@@ -10,6 +12,10 @@ local function instrument_bar_generate(result_store)
   Bar.generate = function(bar, ctx)
     current_bar_type = bar.type
     current_bar_id = bar.id
+
+    if not bar_by_id[current_bar_id] then
+      bar_by_id[current_bar_id] = bar
+    end
 
     if not result_store[current_bar_type][current_bar_id] then
       result_store[current_bar_type][current_bar_id] = {}
@@ -204,19 +210,34 @@ function mod.stop()
   end
 end
 
----@param object_type 'bar'|'item'
+local get_object = {
+  bar = function(id)
+    return bar_by_id[id]
+  end,
+  item = function(id)
+    for _, bar in pairs(bar_by_id) do
+      local item = bar._items:next()
+      while item do
+        if item.id == id then
+          return item
+        end
+        item = bar._items:next()
+      end
+    end
+  end,
+}
+
+---@param type 'bar'|'item'
 ---@param id integer
-function mod.inspect(object_type, id)
+---@return nil|NougatBar|NougatItem
+function mod.inspect(type, id)
+  if not get_object[type] then
+    error("invalid type: " .. type)
+  end
   if not id then
     error("missing id")
   end
-  local object = util._get_by_id(object_type, id)
-  local name = string.format("%s_%s", object_type, id)
-  mod[name] = function()
-    mod[name] = nil
-    return object
-  end
-  print(string.format('[Nougat] to get %s(%s) run `require("nougat.profiler").%s()`', object_type, id, name))
+  return get_object[type](id)
 end
 
 return mod

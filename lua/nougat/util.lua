@@ -37,24 +37,13 @@ mod.code = {
   argument_list_status = "a",
 }
 
-local object_by_id = {}
-
----@param type string
----@return (fun(object: table):integer) get_next_id
-function mod.create_id_generator(type)
-  object_by_id[type] = setmetatable({}, { __mode = "v" })
+---@return (fun():integer) get_next_id
+function mod.create_id_generator()
   local id = 0
-  return function(object)
+  return function()
     id = id + 1
-    object_by_id[type][id] = object
     return id
   end
-end
-
----@param type string
----@param id integer
-function mod._get_by_id(type, id)
-  return object_by_id[type][id]
 end
 
 local function get_next_list_item(items)

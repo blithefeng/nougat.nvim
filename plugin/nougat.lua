@@ -20,7 +20,7 @@ commands = {
       require("nougat.profiler").stop()
     end,
     inspect = function(params)
-      require("nougat.profiler").inspect(unpack(params.args))
+      print(vim.inspect(require("nougat.profiler").inspect(unpack(params.args))))
     end,
   },
 }

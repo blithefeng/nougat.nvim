@@ -125,7 +125,7 @@ local function item_function_processor(item, ctx)
   return type(item._item_hl.hl) == "function" and item._item_hl:hl(ctx) or item._item_hl.hl
 end
 
-local get_next_id = u.create_id_generator("item")
+local get_next_id = u.create_id_generator()
 
 ---@param class NougatItem
 ---@param config nougat_item_config
@@ -133,7 +133,7 @@ local function init(class, config)
   ---@class NougatItem
   local self = setmetatable({}, { __index = class })
 
-  self.id = get_next_id(self)
+  self.id = get_next_id()
 
   self.ctx = config.ctx or {}
 

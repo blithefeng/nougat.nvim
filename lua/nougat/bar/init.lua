@@ -97,7 +97,7 @@ local function get_breakpoint_type(breakpoints)
   return breakpoints[1] < breakpoints[2] and "min" or "max"
 end
 
-local get_next_id = u.create_id_generator("bar")
+local get_next_id = u.create_id_generator()
 
 ---@param type 'statusline'|'tabline'|'winbar'
 ---@param opts? { breakpoints?: integer[], hl?: nougat_bar_hl }
@@ -105,7 +105,7 @@ local function init(class, type, opts)
   ---@class NougatBar
   local self = setmetatable({}, { __index = class })
 
-  self.id = get_next_id(self)
+  self.id = get_next_id()
   self.type = type
 
   self._hl_name = fallback_hl_name_by_type[self.type]
