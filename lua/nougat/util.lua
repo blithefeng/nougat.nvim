@@ -184,7 +184,7 @@ end
 ---@param items NougatItem[]|{ len?: integer }
 ---@param ctx nougat_bar_ctx
 function mod.prepare_parts(items, ctx)
-  local breakpoint = ctx.ctx.breakpoint
+  local breakpoint = ctx.breakpoint
 
   local hls, parts = ctx.hls, ctx.parts
   local hl_idx, part_idx
@@ -420,7 +420,7 @@ function mod.prepare_slots(items, ctx)
   local ctx_hl = ctx.hl
   local reset_hl_bg, reset_hl_fg, reset_hl_name = ctx_hl.bg, ctx_hl.fg, get_hl_name(ctx_hl, ctx_hl)
 
-  local breakpoint = ctx.ctx.breakpoint
+  local breakpoint = ctx.breakpoint
 
   local slots = ctx.slots
 

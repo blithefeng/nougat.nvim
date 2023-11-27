@@ -2,13 +2,13 @@ local on_event = require("nougat.util.on_event")
 
 local cache_getter = {
   buf = function(item, ctx)
-    return item._cache_store[ctx.bufnr][ctx.ctx.breakpoint]
+    return item._cache_store[ctx.bufnr][ctx.breakpoint]
   end,
   win = function(item, ctx)
-    return item._cache_store[ctx.winid][ctx.ctx.breakpoint]
+    return item._cache_store[ctx.winid][ctx.breakpoint]
   end,
   tab = function(item, ctx)
-    return item._cache_store[ctx.tabid][ctx.ctx.breakpoint]
+    return item._cache_store[ctx.tabid][ctx.breakpoint]
   end,
   _wrap_fn = function(item, ctx)
     return item._cache_get(item._cache_store, ctx)

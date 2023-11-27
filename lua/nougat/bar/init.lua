@@ -170,6 +170,7 @@ end
 
 ---@class nougat_bar_ctx: nougat_core_expression_context
 ---@field ctx table
+---@field breakpoint integer current breakpoint
 ---@field hl nougat_hl_def fallback highlight for current item
 ---@field width integer width of the bar
 ---@field hls nougat_lazy_item_hl[]|{ len: integer } (internal)
@@ -181,7 +182,9 @@ end
 
 ---@param ctx nougat_bar_ctx
 function Bar:generate(ctx)
-  ctx.ctx.breakpoint = self._get_breakpoint_index(ctx.width, self._breakpoints)
+  ctx.breakpoint = self._get_breakpoint_index(ctx.width, self._breakpoints)
+  ---@deprecated
+  ctx.ctx.breakpoint = ctx.breakpoint
 
   local hl, bar_hl = self._hl, get_bar_hl(self, ctx)
   hl.bg, hl.fg = bar_hl.bg, bar_hl.fg

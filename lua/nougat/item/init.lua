@@ -334,7 +334,7 @@ end
 
 ---@param ctx nougat_bar_ctx
 function Item:config(ctx)
-  return self._config[ctx.ctx.breakpoint] or self._config
+  return self._config[ctx.breakpoint] or self._config
 end
 
 ---@alias NougatItem.constructor fun(config: nougat_item_config): NougatItem

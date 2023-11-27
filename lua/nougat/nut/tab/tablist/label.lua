@@ -77,7 +77,7 @@ function mod.create(opts)
         cache = {
           scope = "buf",
           get = function(store, ctx)
-            return store[ctx.tab.bufnr][ctx.ctx.breakpoint]
+            return store[ctx.tab.bufnr][ctx.breakpoint]
           end,
           clear = "BufFilePost",
         },
