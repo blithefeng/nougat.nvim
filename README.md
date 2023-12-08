@@ -149,15 +149,17 @@ _Signature:_ `() -> nil`
 
 ### `set_winbar`
 
-_Signature:_ `(bar: NougatBar | nougat_bar_selector, opts?: { filetype?: string, global?: boolean }) -> nil`
+_Signature:_ `(bar: NougatBar | nougat_bar_selector, opts?: { filetype?: string, global?: boolean, winid?: integer }) -> nil`
 
 `bar` can be a `NougatBar` instance or a `nougat_bar_selector` function.
 
-`opts` is a `table` with the shape ` { filetype?: string, global?: boolean }`.
+`opts` is a `table` with the shape ` { filetype?: string, global?: boolean, winid?: integer }`.
 
 If `filetype` is given, the bar will only be used for that filetype.
 
-If `global` is `true`, the bar will be used for global winbar, otherwise only local winbar is set.
+If `global` is `true`, the bar will be used for global `'winbar'`, otherwise the local `'winbar'` is set whenever a new window is created.
+
+If `winid` is present, the bar will be used for only that specific window.
 
 ### `refresh_winbar`
 
