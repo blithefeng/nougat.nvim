@@ -154,7 +154,9 @@ function mod.prepare_highlights(ctx, fallback_hl)
             near_next_hl and (near_next_hl.c or near_next_hl.fb) or nil
           ),
           hl.fb or fallback_hl
+          --luacov: disable
         ),
+        --luacov: enable
         nil,
         parts,
         hl.sl_idx
@@ -194,7 +196,9 @@ function mod.prepare_highlights(ctx, fallback_hl)
             far_next_hl and (far_next_hl.c or far_next_hl.fb) or nil
           ),
           hl.fb or fallback_hl
+          --luacov: disable
         ),
+        --luacov: enable
         nil,
         parts,
         hl.sr_idx

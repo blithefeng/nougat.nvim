@@ -16,6 +16,8 @@ describe("NougatBar", function()
   local ctx
 
   before_each(function()
+    require("nougat.util.store").clear_all()
+
     local bufnr = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_win_set_buf(0, bufnr)
     ctx = t.make_ctx(0, {
@@ -163,7 +165,15 @@ describe("NougatBar", function()
       bar:add_item(nut.mode.create())
       bar:add_item(nut.buf.filename.create({}))
 
-      t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_#[No Name]")
+      t.eq(
+        bar:generate(ctx),
+        table.concat({
+          "%#bg_663399_fg_ffcd00_#",
+          "NORMAL",
+          "%#bg_ffcd00_fg_663399_#",
+          "[No Name]",
+        })
+      )
     end)
   end)
 
@@ -256,9 +266,35 @@ describe("NougatBar", function()
   end)
 
   describe(":generate", function()
-    it("w/ fancy separator", function()
-      local bar = Bar("statusline")
+    local bar
 
+    before_each(function()
+      bar = Bar("statusline")
+    end)
+
+    it("supports item.hl integer", function()
+      local hl = { bg = "red", fg = "yellow" }
+      vim.api.nvim_set_hl(0, "User1", hl)
+
+      bar:add_item({ hl = 1, content = "A" })
+
+      t.eq(
+        bar:generate(ctx),
+        table.concat({
+          "%#bg_ff0000_fg_ffff00_#",
+          "A",
+          "%#bg_ffcd00_fg_663399_#",
+        })
+      )
+    end)
+
+    it("ignores invalid item.hl", function()
+      bar:add_item({ hl = true, content = "A" })
+
+      t.eq(bar:generate(ctx), "A")
+    end)
+
+    it("w/ fancy separator", function()
       bar:add_item({
         hl = { bg = "purple", fg = "yellow" },
         content = "X",
@@ -296,12 +332,90 @@ describe("NougatBar", function()
       )
     end)
 
-    describe("w/ priority", function()
-      local bar
+    it("w/ fancy separator reversed", function()
+      local function affix()
+        return "."
+      end
 
-      before_each(function()
-        bar = Bar("statusline")
-        ctx.width = vim.api.nvim_win_get_width(0)
+      bar:add_item({
+        hl = { bg = "purple", fg = "yellow" },
+        content = "X",
+      })
+      bar:add_item({
+        hl = { fg = "cyan" },
+        sep_left = sep.right_lower_triangle_solid(true),
+        prefix = affix,
+        content = "X",
+        suffix = affix,
+        sep_right = sep.left_lower_triangle_solid(true),
+      })
+      bar:add_item({
+        hl = { bg = "purple", fg = "yellow" },
+        content = "X",
+      })
+
+      t.eq(
+        bar:generate(ctx),
+        table.concat({
+          "%#bg_purple_fg_yellow_#",
+          "X",
+          "%#bg_ffcd00_fg_663399_#",
+          "%#bg_ffcd00_fg_purple_#",
+          "",
+          "%#bg_ffcd00_fg_cyan_#",
+          ".X.",
+          "%#bg_ffcd00_fg_purple_#",
+          "",
+          "%#bg_ffcd00_fg_663399_#",
+          "%#bg_purple_fg_yellow_#",
+          "X",
+          "%#bg_ffcd00_fg_663399_#",
+        }, "")
+      )
+    end)
+
+    describe("w/o priority", function()
+      it("calls prepare", function()
+        local item = bar:add_item({
+          prepare = t.spy(),
+        })
+
+        bar:generate(ctx)
+
+        t.spy(item.prepare).was.called(1)
+        t.ref(item.prepare.calls[1].refs[1], item)
+      end)
+
+      it("sep.hl should not bleed into content", function()
+        bar:add_item({
+          sep_left = sep.heavy_veritcal({ fg = "red" }),
+          content = "X",
+        })
+
+        t.eq(
+          bar:generate(ctx),
+          table.concat({
+            "%#bg_ffcd00_fg_red_#",
+            "┃",
+            "%#bg_ffcd00_fg_663399_#",
+            "X",
+            "%#bg_ffcd00_fg_663399_#",
+          })
+        )
+      end)
+    end)
+
+    describe("w/ priority", function()
+      it("calls prepare", function()
+        local item = bar:add_item({
+          priority = 1,
+          prepare = t.spy(),
+        })
+
+        bar:generate(ctx)
+
+        t.spy(item.prepare).was.called(1)
+        t.ref(item.prepare.calls[1].refs[1], item)
       end)
 
       it("basic", function()
@@ -377,6 +491,68 @@ describe("NougatBar", function()
 
         ctx.width = 1 + (2 + 1) * 1 + 1
         t.eq(bar:generate(ctx), " ~1 ")
+      end)
+
+      it("handles missing sep.content gracefully", function()
+        bar:add_item({
+          priority = 1,
+          hl = { fg = "red" },
+          sep_left = { {} },
+          content = "X",
+          sep_right = { {} },
+        })
+
+        t.eq(
+          bar:generate(ctx),
+          table.concat({
+            "%#bg_ffcd00_fg_red_#",
+            "X",
+            "%#bg_ffcd00_fg_663399_#",
+          })
+        )
+      end)
+
+      it("sep.hl fallbacks to item.hl", function()
+        bar:add_item({
+          priority = 1,
+          hl = { fg = "red" },
+          sep_left = sep.heavy_veritcal(),
+          content = "X",
+          sep_right = sep.heavy_veritcal(),
+        })
+
+        t.eq(
+          bar:generate(ctx),
+          table.concat({
+            "%#bg_ffcd00_fg_red_#",
+            "┃",
+            "X",
+            "┃",
+            "%#bg_ffcd00_fg_663399_#",
+          })
+        )
+      end)
+
+      it("sep.hl should not bleed into content", function()
+        bar:add_item({
+          priority = 1,
+          sep_left = sep.heavy_veritcal({ fg = "red" }),
+          content = "X",
+          sep_right = sep.heavy_veritcal({ fg = "green" }),
+        })
+
+        t.eq(
+          bar:generate(ctx),
+          table.concat({
+            "%#bg_ffcd00_fg_red_#",
+            "┃",
+            "%#bg_ffcd00_fg_663399_#",
+            "X",
+            "%#bg_ffcd00_fg_green_#",
+            "┃",
+            "%#bg_ffcd00_fg_663399_#",
+          })
+        )
       end)
     end)
   end)
