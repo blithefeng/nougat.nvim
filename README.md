@@ -10,16 +10,16 @@ Hyperextensible plugin for Neovim's `'statusline'`, `'tabline'` and `'winbar'`.
 
 - :hammer_and_wrench: Hyperextensible.
 - :rocket: Fast, Performance focused, Submillisecond evaluation time.
-- :package: Modular design, only use what you need.
+- :desktop_computer: Responsive Breakpoints, Smart Truncation.
+- :art: Color Palette, Automatic and Adaptive.
+- :package: Modular Design, only use what you need.
 - :crystal_ball: Dynamic `statusline` / `tabline` / `winbar`.
-- :page_with_curl: Filetype specific `statusline` / `winbar`.
-- :art: Color palette.
-- :nail_care: Fancy separators.
-- :computer_mouse: Mouse-click.
+- :page_with_curl: Filetype Specific `statusline` / `winbar`.
+- :nail_care: Fancy Separator.
+- :computer_mouse: Mouse-Click.
 - :briefcase: Caching out-of-the-box.
-- :desktop_computer: Responsive breakpoints.
-- :bar_chart: Built-in profiler.
-- :peanuts: Common items included.
+- :bar_chart: Built-in Profiler.
+- :peanuts: Common Items included.
 
 ## :spider_web: Requirements
 
@@ -27,7 +27,7 @@ Hyperextensible plugin for Neovim's `'statusline'`, `'tabline'` and `'winbar'`.
 
 ## :inbox_tray: Installation
 
-Install the plugins with your preferred plugin manager. For example:
+Install with your preferred plugin manager. For example:
 
 **With [`lazy.nvim`](https://github.com/folke/lazy.nvim)**
 
@@ -62,32 +62,6 @@ Plug 'MunifTanjim/nougat.nvim'
 ## Usage
 
 `nougat.nvim` is at your disposal to build exactly what you want.
-
-### Examples
-
-A handful of examples are available to get you started.
-
-#### Bubbly
-
-Source: [bubbly.lua](examples/bubbly.lua)
-
-![Bubbly Statusline](https://github.com/MunifTanjim/nougat.nvim/wiki/media/bubbly-statusline.png)
-
-#### Pointy
-
-Source: [pointy.lua](examples/pointy.lua)
-
-![Pointy Statusline](https://github.com/MunifTanjim/nougat.nvim/wiki/media/pointy-statusline.png)
-
-#### Slanty
-
-Source: [slanty.lua](examples/slanty.lua)
-
-![Slanty Statusline](https://github.com/MunifTanjim/nougat.nvim/wiki/media/slanty-statusline.png)
-
----
-
-## Nougat
 
 ```lua
 local nougat = require("nougat")
@@ -150,11 +124,11 @@ _Signature:_ `() -> nil`
 
 ### `set_winbar`
 
-_Signature:_ `(bar: NougatBar | nougat_bar_selector, opts?: { filetype?: string, global?: boolean, winid?: integer }) -> nil`
+_Signature:_ `(bar: NougatBar | nougat_bar_selector, opts?: { filetype: string }|{ global?: boolean }|{ winid: integer }) -> nil`
 
 `bar` can be a `NougatBar` instance or a `nougat_bar_selector` function.
 
-`opts` is a `table` with the shape ` { filetype?: string, global?: boolean, winid?: integer }`.
+`opts` is a `table` with one of the shapes `{ filetype: string }` / `{ global?: boolean }` / `{ winid: integer }`.
 
 If `filetype` is given, the bar will only be used for that filetype.
 
@@ -165,6 +139,30 @@ If `winid` is present, the bar will be used for only that specific window.
 ### `refresh_winbar`
 
 _Signature:_ `(force_all?: boolean) -> nil`
+
+## Examples
+
+A handful of examples are available to get you started.
+
+#### Bubbly
+
+Source: [bubbly.lua](examples/bubbly.lua)
+
+![Bubbly Statusline](https://github.com/MunifTanjim/nougat.nvim/wiki/media/bubbly-statusline.png)
+
+#### Pointy
+
+Source: [pointy.lua](examples/pointy.lua)
+
+![Pointy Statusline](https://github.com/MunifTanjim/nougat.nvim/wiki/media/pointy-statusline.png)
+
+#### Slanty
+
+Source: [slanty.lua](examples/slanty.lua)
+
+![Slanty Statusline](https://github.com/MunifTanjim/nougat.nvim/wiki/media/slanty-statusline.png)
+
+---
 
 ## :gear: NougatBar
 
@@ -187,6 +185,14 @@ Separator that goes between two `NougatItem`s.
 ## :gear: Cache
 
 **[Check Detailed Documentation for `nougat.cache`](lua/nougat/cache)**
+
+## :art: Color Palette
+
+**[Check Detailed Documentation for `nougat.color`](lua/nougat/color)**
+
+## :peanuts: Nuts
+
+Commonly used `NougatItem`s for your `NougatBar` are available inside [`nougat.nut.*`](lua/nougat/nut) module.
 
 ## :bar_chart: Profiler
 

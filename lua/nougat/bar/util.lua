@@ -220,7 +220,7 @@ function mod.refresh_tabline()
 end
 
 ---@param bar NougatBar|nougat_bar_selector
----@param opts? { filetype?: string, global?: boolean, winid?: integer }
+---@param opts? { filetype: string }|{ global?: boolean }|{ winid: integer }
 function mod.set_winbar(bar, opts)
   opts = opts or {}
 

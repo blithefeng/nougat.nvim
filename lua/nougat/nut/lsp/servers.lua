@@ -9,7 +9,7 @@ local get_hl_name = require("nougat.color").get_hl_name
 ---@field sep? string
 
 ---@class nougat_nut_lsp_servers_config: nougat_item_config__function
----@field cache?: nil
+---@field cache? nil
 ---@field config? nougat.nut.lsp.servers_config.config|nougat.nut.lsp.servers_config.config[]
 ---@field content? nil
 ---@field hl? nougat_hl_def
