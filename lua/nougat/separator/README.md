@@ -48,4 +48,3 @@ If `hl` is `function`, the return value will be used as highlight.
 sep.left_chevron()
 sep.right_lower_triangle_solid(true)
 ```
-
