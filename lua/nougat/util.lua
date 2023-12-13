@@ -41,60 +41,13 @@ function mod.create_id_generator()
   end
 end
 
-local function get_next_list_item(items)
+function mod.get_next_list_item(items)
   local idx = (items._idx or 0) + 1
   local item = idx <= (items.len or idx) and items[idx] or nil
   items._idx = item and idx or 0
   return item, idx
 end
 
-local function get_next_priority_list_item(items)
-  local item = items._node
-  if item then
-    items._node = item._next
-    return item, item._idx
-  end
-  items._node = items._next
-  return nil, nil
-end
-
 mod.on_event = require("nougat.util.on_event")
-
-function mod.link_priority_item(items, item, idx)
-  item.priority = item.priority == false and -math.huge or item.priority or 0
-  local node = items
-  while node do
-    local next_item = node._next
-    if not next_item or next_item.priority < item.priority then
-      item._idx = idx
-      item._next = next_item
-      node._next = item
-      break
-    end
-    node = next_item
-  end
-  items._node = items._next
-end
-
-function mod.initialize_priority_item_list(items, get_next)
-  if not items.next then
-    items.next = get_next or get_next_priority_list_item
-  end
-
-  for idx = 1, (items.len or #items) do
-    local item = items[idx]
-    mod.link_priority_item(items, item, idx)
-
-    if type(item.content) == "table" then
-      mod.initialize_priority_item_list(item.content, items.next)
-    end
-  end
-
-  items._node = items._next
-
-  return items
-end
-
-mod.get_next_list_item = get_next_list_item
 
 return mod

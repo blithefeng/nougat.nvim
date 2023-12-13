@@ -100,6 +100,51 @@ local function get_breakpoint_type(breakpoints)
   return breakpoints[1] < breakpoints[2] and "min" or "max"
 end
 
+local function get_next_priority_list_item(items)
+  local item = items._node
+  if item then
+    items._node = item._next
+    return item, item._idx
+  end
+  items._node = items._next
+  return nil, nil
+end
+
+local function link_priority_item(items, item, idx)
+  item.priority = item.priority == false and -math.huge or item.priority or 0
+  local node = items
+  while node do
+    local next_item = node._next
+    if not next_item or next_item.priority < item.priority then
+      item._idx = idx
+      item._next = next_item
+      node._next = item
+      break
+    end
+    node = next_item
+  end
+  items._node = items._next
+end
+
+local function initialize_priority_item_list(items, get_next)
+  if not items.next then
+    items.next = get_next or get_next_priority_list_item
+  end
+
+  for idx = 1, (items.len or #items) do
+    local item = items[idx]
+    link_priority_item(items, item, idx)
+
+    if type(item.content) == "table" then
+      initialize_priority_item_list(item.content, items.next)
+    end
+  end
+
+  items._node = items._next
+
+  return items
+end
+
 local get_next_id = u.create_id_generator()
 
 ---@param type nougat_bar_type
@@ -153,7 +198,7 @@ function Bar:add_item(item)
     self._slots = { len = 0 }
     self._items._overflow = "hide-self"
     self._items.next = nil
-    u.initialize_priority_item_list(self._items)
+    initialize_priority_item_list(self._items)
   end
 
   local idx = self._items.len + 1
@@ -161,7 +206,7 @@ function Bar:add_item(item)
 
   if self._slots then
     item = clone_item(item)
-    u.link_priority_item(self._items, item, idx)
+    link_priority_item(self._items, item, idx)
   end
 
   self._items[idx] = item
@@ -517,7 +562,7 @@ function Bar.__prepare_slots(items, ctx)
                 end
               else
                 if not content.next then
-                  u.initialize_priority_item_list(content)
+                  initialize_priority_item_list(content)
                 end
 
                 part_idx = part_idx + 1
