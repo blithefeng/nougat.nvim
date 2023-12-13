@@ -2,6 +2,21 @@ local Item = require("nougat.item")
 local color = require("nougat.color").get()
 local on_event = require("nougat.util").on_event
 
+--luacheck: push no max line length
+
+---@class nougat.nut.mode_config.config
+---@field text? table<string, string>
+---@field highlight? table<'normal'|'visual'|'insert'|'replace'|'commandline'|'terminal'|'inactive', nougat_hl_def>
+
+---@class nougat_nut_mode_config: nougat_item_config__function
+---@field cache? nil
+---@field config? nougat.nut.mode_config.config|nougat.nut.mode_config.config[]
+---@field content? nil
+---@field hl? nil
+---@field prepare? nil
+
+--luacheck: pop
+
 local mode_group = {
   ["n"] = "normal",
   ["no"] = "normal",
@@ -132,7 +147,7 @@ local cache = {
   group = mode_group["n"],
 }
 
-on_event("ModeChanged", function()
+local function on_mode_changed()
   local event = vim.v.event
   local old_mode, new_mode = event.old_mode, event.new_mode
   cache.mode, cache.group = new_mode, mode_group[new_mode]
@@ -141,37 +156,44 @@ on_event("ModeChanged", function()
       vim.cmd("redrawstatus")
     end)
   end
-end)
+end
 
-local function get_content(item, ctx)
+---@param item NougatItem
+---@param ctx nougat_bar_ctx
+local function content(item, ctx)
   local mode = ctx.is_focused and cache.mode or "-"
   return item:config(ctx).text[mode] or mode
 end
 
-local function get_hl(item, ctx)
+---@param item NougatItem
+---@param ctx nougat_bar_ctx
+local function hl(item, ctx)
   return item:config(ctx).highlight[ctx.is_focused and cache.group or "inactive"]
 end
 
 local mod = {}
 
-function mod.create(opts)
-  opts = opts or {}
+---@param config? nougat_nut_mode_config
+function mod.create(config)
+  on_event("ModeChanged", on_mode_changed)
+
+  config = config or {}
 
   local item = Item({
-    priority = opts.priority,
-    hidden = opts.hidden,
-    hl = get_hl,
-    sep_left = opts.sep_left,
-    prefix = opts.prefix,
-    content = get_content,
-    suffix = opts.suffix,
-    sep_right = opts.sep_right,
-    config = vim.tbl_deep_extend("keep", opts.config or {}, {
+    priority = config.priority,
+    hidden = config.hidden,
+    hl = hl,
+    sep_left = config.sep_left,
+    prefix = config.prefix,
+    content = content,
+    suffix = config.suffix,
+    sep_right = config.sep_right,
+    config = vim.tbl_deep_extend("keep", config.config or {}, {
       text = default_text,
       highlight = default_highlight,
     }),
-    on_click = opts.on_click,
-    context = opts.context,
+    on_click = config.on_click,
+    context = config.context,
   })
 
   return item
