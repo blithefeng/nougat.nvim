@@ -10,7 +10,7 @@ function mod.normalize_sep(side, sep)
     return sep
   end
 
-  if sep.content then
+  if sep.content or sep.hl then
     sep = { sep }
   end
 

@@ -493,13 +493,13 @@ describe("NougatBar", function()
         t.eq(bar:generate(ctx), " ~1 ")
       end)
 
-      it("handles missing sep.content gracefully", function()
+      it("handles sep.none gracefully", function()
         bar:add_item({
           priority = 1,
           hl = { fg = "red" },
-          sep_left = { {} },
+          sep_left = sep.none(),
           content = "X",
-          sep_right = { {} },
+          sep_right = sep.none(),
         })
 
         t.eq(

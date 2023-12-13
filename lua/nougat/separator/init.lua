@@ -119,9 +119,9 @@ end
 -- ''
 ---@return nougat_separator
 function mod.none()
-  return {
+  return with_hl({
     content = char.none,
-  }
+  }, true)
 end
 
 -- '` `'
