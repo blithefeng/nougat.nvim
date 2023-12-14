@@ -99,12 +99,12 @@ local function clickable_fn_content_processor(item, ctx)
   if #content > 0 then
     o_clickable_parts[part_idx - 1] = content
   else -- no content returned
-    if part_idx == o_clickable_parts.len then -- no parts added
+    if o_clickable_parts.len == part_idx - 2 then -- no parts added
       -- discard clickable parts
       part_idx = part_idx - 7
     else
-      part_idx = o_clickable_parts.len
-      o_clickable_parts[part_idx + 1] = end_delim
+      part_idx = o_clickable_parts.len + 1
+      o_clickable_parts[part_idx] = end_delim
     end
   end
 
