@@ -422,6 +422,8 @@ local function get_item_parts_slot(slots, idx)
     slots[idx] = slot
   end
 
+  slot.len = 0
+
   local item_hl = slot.hl
   item_hl.c = nil
   item_hl.c_idx = nil

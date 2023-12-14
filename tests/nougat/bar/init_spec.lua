@@ -403,6 +403,21 @@ describe("NougatBar", function()
           })
         )
       end)
+
+      it("discards prefix for empty content", function()
+        bar:add_item({
+          prefix = "@",
+          content = "",
+        })
+        bar:add_item({
+          prefix = "#",
+          content = function()
+            return ""
+          end,
+        })
+
+        t.eq(bar:generate(ctx), "")
+      end)
     end)
 
     describe("w/ priority", function()
@@ -416,6 +431,22 @@ describe("NougatBar", function()
 
         t.spy(item.prepare).was.called(1)
         t.ref(item.prepare.calls[1].refs[1], item)
+      end)
+
+      it("discards prefix for empty content", function()
+        bar:add_item({
+          priority = 1,
+          prefix = "@",
+          content = "",
+        })
+        bar:add_item({
+          prefix = "#",
+          content = function()
+            return ""
+          end,
+        })
+
+        t.eq(bar:generate(ctx), "")
       end)
 
       it("basic", function()
