@@ -48,10 +48,10 @@ local buf_id_getter_by_event = {
 }
 
 ---@param event string
----@param scope? string
-function mod.get_invalidation_id_getter(event, scope)
-  if not scope or scope ~= "buf" then
-    error("auto invalidation only supported for cache.scope=buf")
+---@param scope string
+local function get_store_clear_id_getter(event, scope)
+  if scope ~= "buf" then
+    error("default clear get_id not available for cache.scope=" .. scope)
   end
   if string.sub(event, 1, 3):lower() == "buf" then
     return id_getter_by_key.buf
@@ -60,7 +60,7 @@ function mod.get_invalidation_id_getter(event, scope)
   if get_id then
     return get_id
   end
-  error("auto invalidation not supported for event: " .. event)
+  error("default clear get_id not available for event: " .. event)
 end
 
 ---@param clear nougat_item_config.cache.clear
@@ -84,7 +84,7 @@ local function process_item_cache_clear(clear, store, scope)
     local event_by_get_id = {}
     for i = 1, #clear do
       local event = clear[i]
-      local get_id = mod.get_invalidation_id_getter(event, scope)
+      local get_id = get_store_clear_id_getter(event, scope or store.type)
       if event_by_get_id[get_id] then
         table.insert(event_by_get_id[get_id], event)
       else
