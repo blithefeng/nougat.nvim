@@ -136,6 +136,45 @@ describe("nut.tab.tablist", function()
     )
   end)
 
+  describe("icon", function()
+    before_each(function()
+      require("nougat.store")._cleanup("buf", "nut.tab.tablist.icon")
+    end)
+
+    it("works", function()
+      package.loaded["nougat.nut.tab.tablist.icon"] = nil
+
+      package.loaded["nvim-web-devicons"] = {
+        get_icon_color_by_filetype = function()
+          return "~", "yellow"
+        end,
+      }
+
+      tablist.icon = require("nougat.nut.tab.tablist.icon").create
+
+      vim.api.nvim_buf_set_name(tabs[1].bufnr, "_A_.md")
+
+      bar:add_item(tablist.tabs({
+        active_tab = {
+          content = {
+            tablist.icon({}),
+          },
+        },
+      }))
+
+      t.eq(
+        bar:generate(ctx),
+        table.concat({
+          "%#bg_0a0b10_fg_c4c6cd_b#",
+          "%#bg_0a0b10_fg_yellow_#",
+          "~",
+          "%#bg_0a0b10_fg_c4c6cd_#",
+          "%#bg_0a0b10_fg_c4c6cd_#",
+        })
+      )
+    end)
+  end)
+
   describe("label", function()
     it("handles tab move", function()
       vim.api.nvim_buf_set_name(tabs[1].bufnr, "_A_")
