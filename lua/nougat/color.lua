@@ -3,17 +3,21 @@ local Store = require("nougat.store").Store
 
 ---@alias nougat_hl_def { bg?: string, fg?: string, bold?: boolean, italic?: boolean }
 
----@class nougat.color
-local color = { accent = {} }
----@type nougat.color
-local theme = { accent = {} }
-
 local store = Store("nougat.color", {
+  colorscheme = "",
+  background = vim.go.background,
   ---@type table<string, nougat_hl_def>
   get_hl_def = {},
   ---@type table<string, boolean>
   get_hl_name = {},
+  ---@class nougat.color
+  color = {},
+  ---@type nougat.color
+  theme = {},
 })
+
+local color = store.color
+local theme = store.theme
 
 local get_hl_def_cache = store.get_hl_def
 
@@ -164,7 +168,9 @@ local function merge_color_table(old_tbl, new_tbl)
 end
 
 local function prepare_theme_table(thm, clr, prefix)
-  for name, value in pairs(clr) do
+  local names = vim.tbl_keys(clr)
+  for _, name in ipairs(names) do
+    local value = clr[name]
     if string.sub(name, 1, 1) ~= "." then
       if type(value) == "table" then
         thm[name] = prepare_theme_table(type(thm[name]) == "table" and thm[name] or {}, value, prefix .. "." .. name)
@@ -178,17 +184,12 @@ local function prepare_theme_table(thm, clr, prefix)
 end
 
 local mod = {
-  colorscheme = nil,
-  background = vim.go.background,
   get_hl_def = get_hl_def,
   get_hl_name = get_hl_name,
 }
 
 local function on_colorscheme()
   store:clear()
-  if vim.go.background ~= mod.background then
-    mod.colorscheme = nil
-  end
   mod.get()
 end
 
@@ -200,11 +201,12 @@ function mod.get()
     colorscheme = "auto"
   end
 
-  if mod.colorscheme == colorscheme then
+  if store.colorscheme == colorscheme then
     return theme
   end
 
-  mod.colorscheme = colorscheme
+  store.colorscheme = colorscheme
+  store.background = vim.go.background
 
   local ok, color_theme = pcall(require, "nougat.color." .. colorscheme)
 
@@ -237,7 +239,7 @@ function mod.get()
     c.fg = c.fg or normal.fg
   end
 
-  if vim.go.background == "dark" then
+  if store.background == "dark" then
     c.bg = c.bg or vim.g.terminal_color_0 or "#000000"
     accent.bg = accent.bg or vim.g.terminal_color_8 or "darkgray"
     c.fg = c.fg or vim.g.terminal_color_15 or "#ffffff"
