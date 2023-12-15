@@ -633,7 +633,7 @@ function Bar.__prepare_slots(items, ctx)
             parts[nested_items_idx] = nested_slots
           end
 
-          nested_slots.len = nested_items.len
+          nested_slots.len = nested_items.len or #nested_items
           ctx.available_width = available_width
           ctx.slots = nested_slots
 

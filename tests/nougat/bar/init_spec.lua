@@ -473,17 +473,68 @@ describe("NougatBar", function()
         t.eq(bar:generate(ctx), string.format("%s%s%s", string.rep("A", 0), string.rep("B", 10), string.rep("C", 0)))
       end)
 
-      it("nested", function()
-        bar:add_item(nut.mode.create({
-          priority = 3,
-        }))
-        bar:add_item(nut.buf.filename.create({
-          priority = 1,
-        }))
-        bar:add_item(Item({
-          priority = 2,
-          prefix = " ",
-          content = {
+      describe("nested", function()
+        it("static", function()
+          bar:add_item(nut.mode.create({
+            priority = 3,
+          }))
+          bar:add_item(nut.buf.filename.create({
+            priority = 1,
+          }))
+          bar:add_item(Item({
+            priority = 2,
+            prefix = " ",
+            content = {
+              Item({
+                priority = 1,
+                prefix = "+",
+                content = "1",
+                suffix = " ",
+              }),
+              Item({
+                priority = 2,
+                prefix = "~",
+                content = "1",
+                suffix = " ",
+              }),
+              Item({
+                priority = 1,
+                content = {
+                  Item({ content = "-" }),
+                  Item({ content = "1" }),
+                },
+                suffix = " ",
+              }),
+            },
+          }))
+
+          ctx.width = string.len("NORMAL") + string.len("[No Name]") + 1 + (2 + 1) * 3
+          t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_#[No Name] +1 ~1 -1 ")
+
+          ctx.width = string.len("NORMAL") + string.len("[No Name]") + 1 + (2 + 1) * 3 - 1
+          t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# +1 ~1 -1 ")
+
+          ctx.width = string.len("NORMAL") + 1 + (2 + 1) * 3
+          t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# +1 ~1 -1 ")
+
+          ctx.width = string.len("NORMAL") + 1 + (2 + 1) * 3 - 1
+          t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# +1 ~1 ")
+
+          ctx.width = string.len("NORMAL") + 1 + (2 + 1) * 2 - 1
+          t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# ~1 ")
+
+          ctx.width = 1 + (2 + 1) * 1 + 1
+          t.eq(bar:generate(ctx), " ~1 ")
+        end)
+
+        it("dynamic", function()
+          bar:add_item(nut.mode.create({
+            priority = 3,
+          }))
+          bar:add_item(nut.buf.filename.create({
+            priority = 1,
+          }))
+          local sub_items = {
             Item({
               priority = 1,
               prefix = "+",
@@ -498,30 +549,39 @@ describe("NougatBar", function()
             }),
             Item({
               priority = 1,
-              prefix = "-",
-              content = "1",
+              content = {
+                Item({ content = "-" }),
+                Item({ content = "1" }),
+              },
               suffix = " ",
             }),
-          },
-        }))
+          }
+          bar:add_item(Item({
+            priority = 2,
+            prefix = " ",
+            content = function()
+              return sub_items
+            end,
+          }))
 
-        ctx.width = string.len("NORMAL") + string.len("[No Name]") + 1 + (2 + 1) * 3
-        t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_#[No Name] +1 ~1 -1 ")
+          ctx.width = string.len("NORMAL") + string.len("[No Name]") + 1 + (2 + 1) * 3
+          t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_#[No Name] +1 ~1 -1 ")
 
-        ctx.width = string.len("NORMAL") + string.len("[No Name]") + 1 + (2 + 1) * 3 - 1
-        t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# +1 ~1 -1 ")
+          ctx.width = string.len("NORMAL") + string.len("[No Name]") + 1 + (2 + 1) * 3 - 1
+          t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# +1 ~1 -1 ")
 
-        ctx.width = string.len("NORMAL") + 1 + (2 + 1) * 3
-        t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# +1 ~1 -1 ")
+          ctx.width = string.len("NORMAL") + 1 + (2 + 1) * 3
+          t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# +1 ~1 -1 ")
 
-        ctx.width = string.len("NORMAL") + 1 + (2 + 1) * 3 - 1
-        t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# +1 ~1 ")
+          ctx.width = string.len("NORMAL") + 1 + (2 + 1) * 3 - 1
+          t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# +1 ~1 ")
 
-        ctx.width = string.len("NORMAL") + 1 + (2 + 1) * 2 - 1
-        t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# ~1 ")
+          ctx.width = string.len("NORMAL") + 1 + (2 + 1) * 2 - 1
+          t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# ~1 ")
 
-        ctx.width = 1 + (2 + 1) * 1 + 1
-        t.eq(bar:generate(ctx), " ~1 ")
+          ctx.width = 1 + (2 + 1) * 1 + 1
+          t.eq(bar:generate(ctx), " ~1 ")
+        end)
       end)
 
       it("handles sep.none gracefully", function()
