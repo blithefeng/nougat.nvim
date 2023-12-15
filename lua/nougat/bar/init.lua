@@ -135,7 +135,7 @@ local function initialize_priority_item_list(items, get_next)
     local item = items[idx]
     link_priority_item(items, item, idx)
 
-    if type(item.content) == "table" and item.content[1] == "table" then
+    if type(item.content) == "table" and type(item.content[1]) == "table" then
       initialize_priority_item_list(item.content, items.next)
     end
   end
