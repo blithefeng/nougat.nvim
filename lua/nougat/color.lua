@@ -10,14 +10,12 @@ local store = Store("nougat.color", {
   get_hl_def = {},
   ---@type table<string, boolean>
   get_hl_name = {},
-  ---@class nougat.color
-  color = {},
-  ---@type nougat.color
-  theme = {},
 })
 
-local color = store.color
-local theme = store.theme
+---@class nougat.color
+local color = { accent = {} }
+---@type nougat.color
+local theme = { accent = {} }
 
 local get_hl_def_cache = store.get_hl_def
 

@@ -104,6 +104,36 @@ describe("nougat.color", function()
       t.eq(hl_def.bg, "#dc143c")
       t.eq(hl_def.fg, "#ffcd00")
     end)
+
+    it("keeps extra color from previous colorscheme", function()
+      local hl_name, hl_def
+
+      load_color_theme("a", vim.go.background, {
+        get = function()
+          return {
+            purple = "#663399",
+          }
+        end,
+      })
+
+      hl_name = color.get_hl_name({ bg = c.purple, fg = c.yellow }, {})
+      hl_def = color.get_hl_def(hl_name)
+      t.eq(hl_def.bg, "#663399")
+      t.eq(hl_def.fg, "#ffff00")
+
+      load_color_theme("b", vim.go.background, {
+        get = function()
+          return {
+            yellow = "#ffcd00",
+          }
+        end,
+      })
+
+      hl_name = color.get_hl_name({ bg = c.purple, fg = c.yellow }, {})
+      hl_def = color.get_hl_def(hl_name)
+      t.eq(hl_def.bg, "#663399")
+      t.eq(hl_def.fg, "#ffcd00")
+    end)
   end)
 
   describe(".get_hl_def", function()
