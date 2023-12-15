@@ -8,6 +8,8 @@ local nut = {
   buf = {
     filename = require("nougat.nut.buf.filename"),
   },
+  spacer = require("nougat.nut.spacer"),
+  truncation_point = require("nougat.nut.truncation_point"),
 }
 
 local t = require("tests.util")
@@ -418,6 +420,23 @@ describe("NougatBar", function()
 
         t.eq(bar:generate(ctx), "")
       end)
+
+      it("traverses dynamic nested item list correctly", function()
+        bar:add_item({
+          content = "A",
+        })
+        local sub_items = {
+          Item({ content = "B" }),
+          Item({ content = "C" }),
+        }
+        bar:add_item({
+          content = function()
+            return sub_items
+          end,
+        })
+
+        t.eq(bar:generate(ctx), "ABC")
+      end)
     end)
 
     describe("w/ priority", function()
@@ -473,6 +492,74 @@ describe("NougatBar", function()
         t.eq(bar:generate(ctx), string.format("%s%s%s", string.rep("A", 0), string.rep("B", 10), string.rep("C", 0)))
       end)
 
+      it("always includes spacer if present", function()
+        bar:add_item(Item({
+          priority = 1,
+          content = string.rep("A", 5),
+        }))
+        bar:add_item(nut.spacer.create())
+        bar:add_item(Item({
+          priority = 3,
+          content = string.rep("B", 5),
+        }))
+        bar:add_item(Item({
+          priority = 2,
+          content = string.rep("C", 5),
+        }))
+
+        ctx.width = 15
+        t.eq(
+          bar:generate(ctx),
+          string.format("%s%s%s%s", string.rep("A", 5), "%=", string.rep("B", 5), string.rep("C", 5))
+        )
+
+        ctx.width = 10
+        t.eq(
+          bar:generate(ctx),
+          string.format("%s%s%s%s", string.rep("A", 0), "%=", string.rep("B", 5), string.rep("C", 5))
+        )
+
+        ctx.width = 5
+        t.eq(
+          bar:generate(ctx),
+          string.format("%s%s%s%s", string.rep("A", 0), "%=", string.rep("B", 5), string.rep("C", 0))
+        )
+      end)
+
+      it("always includes truncation_point if present", function()
+        bar:add_item(Item({
+          priority = 1,
+          content = string.rep("A", 5),
+        }))
+        bar:add_item(nut.truncation_point.create())
+        bar:add_item(Item({
+          priority = 3,
+          content = string.rep("B", 5),
+        }))
+        bar:add_item(Item({
+          priority = 2,
+          content = string.rep("C", 5),
+        }))
+
+        ctx.width = 15
+        t.eq(
+          bar:generate(ctx),
+          string.format("%s%s%s%s", string.rep("A", 5), "%<", string.rep("B", 5), string.rep("C", 5))
+        )
+
+        ctx.width = 10
+        t.eq(
+          bar:generate(ctx),
+          string.format("%s%s%s%s", string.rep("A", 0), "%<", string.rep("B", 5), string.rep("C", 5))
+        )
+
+        ctx.width = 5
+        t.eq(
+          bar:generate(ctx),
+          string.format("%s%s%s%s", string.rep("A", 0), "%<", string.rep("B", 5), string.rep("C", 0))
+        )
+      end)
+
       describe("nested", function()
         it("static", function()
           bar:add_item(nut.mode.create({
@@ -506,25 +593,43 @@ describe("NougatBar", function()
                 suffix = " ",
               }),
             },
+            sep_right = sep.right_chevron({ fg = "yellow" }),
           }))
 
-          ctx.width = string.len("NORMAL") + string.len("[No Name]") + 1 + (2 + 1) * 3
-          t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_#[No Name] +1 ~1 -1 ")
+          local sep_r_len = 1
 
-          ctx.width = string.len("NORMAL") + string.len("[No Name]") + 1 + (2 + 1) * 3 - 1
-          t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# +1 ~1 -1 ")
+          ctx.width = string.len("NORMAL") + string.len("[No Name]") + 1 + (2 + 1) * 3 + sep_r_len
+          t.eq(
+            bar:generate(ctx),
+            "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_#[No Name] +1 ~1 -1 %#bg_ffcd00_fg_yellow_#%#bg_ffcd00_fg_663399_#"
+          )
 
-          ctx.width = string.len("NORMAL") + 1 + (2 + 1) * 3
-          t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# +1 ~1 -1 ")
+          ctx.width = string.len("NORMAL") + string.len("[No Name]") + 1 + (2 + 1) * 3 - 1 + sep_r_len
+          t.eq(
+            bar:generate(ctx),
+            "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# +1 ~1 -1 %#bg_ffcd00_fg_yellow_#%#bg_ffcd00_fg_663399_#"
+          )
 
-          ctx.width = string.len("NORMAL") + 1 + (2 + 1) * 3 - 1
-          t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# +1 ~1 ")
+          ctx.width = string.len("NORMAL") + 1 + (2 + 1) * 3 + sep_r_len
+          t.eq(
+            bar:generate(ctx),
+            "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# +1 ~1 -1 %#bg_ffcd00_fg_yellow_#%#bg_ffcd00_fg_663399_#"
+          )
 
-          ctx.width = string.len("NORMAL") + 1 + (2 + 1) * 2 - 1
-          t.eq(bar:generate(ctx), "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# ~1 ")
+          ctx.width = string.len("NORMAL") + 1 + (2 + 1) * 3 - 1 + sep_r_len
+          t.eq(
+            bar:generate(ctx),
+            "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# +1 ~1 %#bg_ffcd00_fg_yellow_#%#bg_ffcd00_fg_663399_#"
+          )
 
-          ctx.width = 1 + (2 + 1) * 1 + 1
-          t.eq(bar:generate(ctx), " ~1 ")
+          ctx.width = string.len("NORMAL") + 1 + (2 + 1) * 2 - 1 + sep_r_len
+          t.eq(
+            bar:generate(ctx),
+            "%#bg_663399_fg_ffcd00_#NORMAL%#bg_ffcd00_fg_663399_# ~1 %#bg_ffcd00_fg_yellow_#%#bg_ffcd00_fg_663399_#"
+          )
+
+          ctx.width = 1 + (2 + 1) * 1 + sep_r_len
+          t.eq(bar:generate(ctx), " ~1 %#bg_ffcd00_fg_yellow_#%#bg_ffcd00_fg_663399_#")
         end)
 
         it("dynamic", function()
@@ -611,7 +716,6 @@ describe("NougatBar", function()
             },
           }))
 
-          ctx.width = string.len("NORMAL") + string.len("[No Name]") + 1 + (2 + 1) * 3
           t.eq(bar:generate(ctx), " +1 ~1 -1 ")
         end)
       end)

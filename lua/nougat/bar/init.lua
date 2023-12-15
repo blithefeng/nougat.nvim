@@ -64,7 +64,9 @@ local get_breakpoint_index = {
         return idx
       end
     end
-    return 0
+    --luacov: disable
+    error("invalid breakpoint configuration") -- should be unreachable
+    --luacov: enable
   end,
   max = function(width, breakpoints)
     for idx = #breakpoints, 1, -1 do
@@ -72,7 +74,9 @@ local get_breakpoint_index = {
         return idx
       end
     end
-    return 0
+    --luacov: disable
+    error("invalid breakpoint configuration") -- should be unreachable
+    --luacov: enable
   end,
 }
 
