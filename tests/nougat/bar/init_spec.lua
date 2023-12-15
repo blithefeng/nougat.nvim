@@ -582,6 +582,38 @@ describe("NougatBar", function()
           ctx.width = 1 + (2 + 1) * 1 + 1
           t.eq(bar:generate(ctx), " ~1 ")
         end)
+
+        it("string[]", function()
+          bar:add_item(Item({
+            priority = 2,
+            prefix = " ",
+            content = {
+              Item({
+                priority = 1,
+                prefix = "+",
+                content = "1",
+                suffix = " ",
+              }),
+              Item({
+                priority = 2,
+                prefix = "~",
+                content = "1",
+                suffix = " ",
+              }),
+              Item({
+                priority = 1,
+                content = {
+                  "-",
+                  "1",
+                },
+                suffix = " ",
+              }),
+            },
+          }))
+
+          ctx.width = string.len("NORMAL") + string.len("[No Name]") + 1 + (2 + 1) * 3
+          t.eq(bar:generate(ctx), " +1 ~1 -1 ")
+        end)
       end)
 
       it("handles sep.none gracefully", function()
