@@ -10,8 +10,6 @@ describe("nut.git.status", function()
   local nut
 
   before_each(function()
-    vim.wait(0)
-
     require("nougat.store")._clear()
 
     bar = Bar("statusline")

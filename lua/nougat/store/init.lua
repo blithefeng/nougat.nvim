@@ -159,6 +159,9 @@ end
 ---@param target_type? ''|'buf'|'win'|'tab'
 ---@param target_name? string
 function mod._clear(target_type, target_name)
+  -- wait a bit for pending tasks
+  vim.wait(10)
+
   for store_type, store_by_name in pairs(registry) do
     if store_type == (target_type or store_type) then
       for name, store in pairs(store_by_name) do
@@ -182,6 +185,9 @@ end
 ---@param target_type? ''|'buf'|'win'|'tab'
 ---@param target_name? string
 function mod._cleanup(target_type, target_name)
+  -- wait a bit for pending tasks
+  vim.wait(10)
+
   for store_type, store_by_name in pairs(registry) do
     if store_type == (target_type or store_type) then
       for name in pairs(store_by_name) do
