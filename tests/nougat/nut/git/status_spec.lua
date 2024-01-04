@@ -83,9 +83,7 @@ describe("nut.git.status", function()
 
   describe("w/ vim-gitgutter", function()
     before_each(function()
-      t.stub(vim.fn, "exists", function(name)
-        return name == "*GitGutterGetHunkSummary" and 1 or 0
-      end)
+      t.stub(vim.fn, "exists").on_call_with("*GitGutterGetHunkSummary").returns(1)
     end)
 
     after_each(function()
@@ -106,9 +104,7 @@ describe("nut.git.status", function()
         },
       }))
 
-      t.stub(vim.fn, "GitGutterGetHunkSummary", function()
-        return { 1 }
-      end)
+      t.stub(vim.fn, "GitGutterGetHunkSummary").returns({ 1 })
 
       vim.g.gitgutter_hook_context = { bufnr = ctx.bufnr }
       vim.api.nvim_exec_autocmds("User", { pattern = "GitGutter" })
@@ -118,9 +114,7 @@ describe("nut.git.status", function()
 
       vim.fn.GitGutterGetHunkSummary:revert()
 
-      t.stub(vim.fn, "GitGutterGetHunkSummary", function()
-        return { 2, 4, 6 }
-      end)
+      t.stub(vim.fn, "GitGutterGetHunkSummary").returns({ 2, 4, 6 })
 
       vim.g.gitgutter_hook_context = { bufnr = ctx.bufnr }
       vim.api.nvim_exec_autocmds("User", { pattern = "GitGutter" })

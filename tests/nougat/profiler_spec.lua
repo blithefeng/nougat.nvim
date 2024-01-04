@@ -21,6 +21,12 @@ describe("nougat.profiler", function()
     require("examples.slanty")
   end)
 
+  after_each(function()
+    if type(_G.print) == "table" and _G.print.revert then
+      _G.print:revert()
+    end
+  end)
+
   describe("bench", function()
     it("works", function()
       local print_stub = t.stub(_G, "print")
@@ -30,7 +36,6 @@ describe("nougat.profiler", function()
       vim.g._nougat_profiler_bench_count = nil
 
       local calls = print_stub.calls
-      print_stub:revert()
 
       for call_idx in ipairs(print_stub.calls) do
         local lines = vim.split(calls[call_idx].refs[1], "\n")
@@ -62,7 +67,6 @@ describe("nougat.profiler", function()
       profiler.stop()
 
       local calls = print_stub.calls
-      print_stub:revert()
 
       for call_idx in ipairs(print_stub.calls) do
         local lines = vim.split(calls[call_idx].refs[1], "\n")
@@ -90,7 +94,6 @@ describe("nougat.profiler", function()
       vim.g._nougat_profiler_bench_count = nil
 
       local calls = print_stub.calls
-      print_stub:revert()
 
       local bar_type, bar_id = t.match(vim.split(calls[1].refs[1], "\n")[1], "bench%(%s*(%S-):%s+(%d+)%)")
       bar_id = tonumber(bar_id)
@@ -108,7 +111,6 @@ describe("nougat.profiler", function()
       vim.g._nougat_profiler_bench_count = nil
 
       local calls = print_stub.calls
-      print_stub:revert()
 
       local item_id = t.match(vim.split(calls[1].refs[1], "\n")[2], "  bench%(%s*item:%s+(%d+)%)")
       item_id = tonumber(item_id)

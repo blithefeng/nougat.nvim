@@ -30,6 +30,11 @@ function mod.ref(a, b)
   return assert(a == b, "references are not same")
 end
 
+-- Usage:
+-- - `t.spy()` : spy
+-- - `t.spy(function() end)` : spy w/ implementation
+-- - `t.spy(tbl, key)` : spy on `tbl[key]`
+-- - `t.spy(spy)` : assert spy
 function mod.spy(...)
   local args = { ... }
   if #args == 0 then
@@ -45,6 +50,10 @@ function mod.spy(...)
   end
 end
 
+-- Usage:
+-- - `t.stub(tbl, key)` : stub `tbl[key]`
+-- - `t.stub(tbl, key, ...return_vals)` : stub `tbl[key]` w/ return values
+-- - `t.stub(tbl, key, function() end)` : stub `tbl[key]` w/ implementation
 function mod.stub(...)
   local args = { ... }
   return stub.new(unpack(args))
