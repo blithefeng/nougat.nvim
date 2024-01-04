@@ -20,6 +20,10 @@ local get_content = {
 
 local mod = {}
 
+-- Requires one of the plugins:
+-- - `tpope/vim-fugitive`
+-- - `lewis6991/gitsigns.nvim`
+--
 ---@param config? nougat.nut.git.branch_config
 function mod.create(config)
   config = config or {}

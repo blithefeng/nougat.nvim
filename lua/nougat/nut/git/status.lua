@@ -69,6 +69,10 @@ local function on_gitstatus_change(cache)
   cache.removed_str = tostring(cache.removed)
 end
 
+-- Requires one of the plugins:
+-- - `lewis6991/gitsigns.nvim`
+-- - `airblade/vim-gitgutter`
+--
 ---@param config nougat.nut.git.status_config
 function mod.create(config)
   buf_cache.enable("gitstatus")
