@@ -28,9 +28,15 @@ describe("nut.git.status", function()
   end)
 
   describe("w/ gitsigns", function()
-    it("works", function()
+    before_each(function()
       package.loaded["gitsigns"] = {}
+    end)
 
+    after_each(function()
+      package.loaded["gitsigns"] = nil
+    end)
+
+    it("works", function()
       bar:add_item(nut.create({
         prefix = " ",
         content = {
@@ -39,8 +45,6 @@ describe("nut.git.status", function()
           nut.count("removed", { prefix = "-", suffix = " " }),
         },
       }))
-
-      package.loaded["gitsigns"] = nil
 
       vim.b[ctx.bufnr].gitsigns_status_dict = {
         added = 1,
@@ -62,16 +66,12 @@ describe("nut.git.status", function()
     end)
 
     it("can handle missing gitstatus", function()
-      package.loaded["gitsigns"] = {}
-
       bar:add_item(nut.create({
         prefix = " ",
         content = {
           nut.count("added", { prefix = "+", suffix = " " }),
         },
       }))
-
-      package.loaded["gitsigns"] = nil
 
       vim.b[ctx.bufnr].gitsigns_status_dict = nil
       vim.api.nvim_exec_autocmds("User", { pattern = "GitSignsUpdate" })
