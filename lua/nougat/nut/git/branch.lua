@@ -59,6 +59,7 @@ function mod.create(config)
     },
   })
 
+  print(type(content))
   if type(content) == "nil" then
     item.hidden = true
   end
